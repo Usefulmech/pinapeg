@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pinapeg | Conversation History</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#474744",
+                        "primary-fixed-dim": "#cec5be",
+                        "secondary-fixed-dim": "#c8c6c2",
+                        "surface-container": "#f1edeb",
+                        "surface-variant": "#e6e2e0",
+                        "secondary-fixed": "#e4e2dd",
+                        "primary-fixed": "#ebe1da",
+                        "on-primary-container": "#bab1ab",
+                        "outline": "#7e766f",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed": "#1c1c18",
+                        "surface-container-low": "#f7f3f1",
+                        "outline-variant": "#cfc5bd",
+                        "on-secondary-container": "#63635f",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#e1dfdb",
+                        "surface-bright": "#fdf8f6",
+                        "primary": "#332e29",
+                        "on-primary-fixed": "#1f1b17",
+                        "on-surface-variant": "#4c4540",
+                        "surface": "#fdf8f6",
+                        "on-background": "#1c1b1a",
+                        "background": "#fdf8f6",
+                        "secondary": "#5e5e5b",
+                        "on-tertiary-fixed-variant": "#484742",
+                        "inverse-surface": "#31302f",
+                        "inverse-primary": "#cec5be",
+                        "surface-container-high": "#ece7e5",
+                        "surface-dim": "#ddd9d7",
+                        "inverse-on-surface": "#f4f0ee",
+                        "tertiary-container": "#474541",
+                        "primary-container": "#4a443f",
+                        "tertiary-fixed": "#e6e2dc",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1c1b1a",
+                        "tertiary-fixed-dim": "#cac6c0",
+                        "on-secondary-fixed": "#1b1c19",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#645d58",
+                        "tertiary": "#302f2b",
+                        "on-tertiary-container": "#b6b3ad",
+                        "surface-container-highest": "#e6e20",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#4c4641"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "64px",
+                        "gutter": "24px",
+                        "max-width": "1280px",
+                        "unit": "4px",
+                        "margin-mobile": "20px",
+                        "container-padding": "24px",
+                        "stack-gap": "16px",
+                        "section-gap": "40px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Hanken Grotesk"],
+                        "display-lg": ["Libre Caslon Text"],
+                        "headline-sm": ["Libre Caslon Text"],
+                        "label-sm": ["Hanken Grotesk"],
+                        "headline-md": ["Libre Caslon Text"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "display-lg-mobile": ["Libre Caslon Text"],
+                        "body-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-lg": ["64px", {"lineHeight": "72px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                        "headline-sm": ["24px", {"lineHeight": "32px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                        "headline-md": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg-mobile": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #fdf8f6;
+            color: #1c1b1a;
+            font-family: 'Hanken Grotesk', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .paper-texture {
+            background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+        }
+        h1, h2, h3, .font-headline-md, .font-display-lg-mobile {
+            font-family: 'Libre Caslon Text', serif;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 bg-surface dark:bg-surface flex justify-between items-center px-container-padding py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant/30">
+<img class="w-full h-full object-cover" data-alt="Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2iuhpMoV74qeKlSraWb1JfvAg5CoCvkG5anx1Lenz9HjjJpCLWs_8DGOLbPznQu7F4e0UiVzru_uwUGw1ZQzSDdLFWJ_3l-6hnRt4ls88INd36_YSAXhWba7E-WnN8sPyvmxbL12wG487--q2FhJxEd-FtF9cqehoRr2MyrFyHXjqGP7lpTkE4sypvqkaqlY0LXXh0IxLFPG_MSh08zkjZWp8iN8fXwvrr7PWo3VmKwQwJnYqxEtDOijLUkrJcrahRVrnDXF6_3Y"/>
+</div>
+<h1 class="text-[20px] text-primary tracking-tight font-headline-md">Pinapeg</h1>
+</div>
+<button class="material-symbols-outlined text-primary hover:opacity-80 transition-opacity p-2 rounded-full active:scale-95 transition-transform duration-200">
+        settings
+    </button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow px-container-padding pt-6 pb-32 max-w-3xl mx-auto w-full">
+<!-- Section Header -->
+<div class="mb-section-gap">
+<p class="font-label-md text-secondary uppercase tracking-widest mb-2">History</p>
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-on-surface">Your Thoughts</h2>
+</div>
+<!-- Conversation Stream -->
+<div class="flex flex-col gap-section-gap">
+<!-- Day Divider -->
+<div class="flex items-center gap-4 py-4">
+<div class="h-[1px] flex-grow bg-outline-variant/30"></div>
+<span class="font-label-sm text-outline text-[10px] uppercase">Today</span>
+<div class="h-[1px] flex-grow bg-outline-variant/30"></div>
+</div>
+<!-- Thread 1 -->
+<div class="flex flex-col gap-stack-gap">
+<!-- User Voice Entry -->
+<div class="flex items-start gap-4 max-w-[85%]">
+<div class="flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">mic</span>
+</div>
+<div class="flex flex-col">
+<p class="font-body-lg text-on-surface-variant leading-relaxed">
+                        I've been feeling a bit overwhelmed by the new project scope. It's hard to find a starting point that doesn't feel like a mountain.
+                    </p>
+<span class="font-label-sm text-[10px] text-outline mt-1 uppercase">10:42 AM</span>
+</div>
+</div>
+<!-- Assistant Response -->
+<div class="pl-9 py-4 border-l border-outline-variant/30">
+<div class="p-6 bg-surface-container-low rounded-xl shadow-sm border border-outline-variant/20 relative overflow-hidden">
+<div class="absolute inset-0 paper-texture opacity-5 pointer-events-none"></div>
+<p class="font-body-lg text-primary font-medium mb-4">
+                        It sounds like we need to find the "first pebble." Sometimes the mountain is just a collection of small paths. Shall we try breaking the primary objective into three micro-tasks for this afternoon?
+                    </p>
+<!-- Tactile Suggestion Card -->
+<div class="mt-4 p-4 bg-surface-container-highest/50 rounded-lg border border-outline-variant/20 flex items-center justify-between group cursor-pointer hover:bg-surface-container-highest transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">lightbulb</span>
+<span class="font-body-md text-on-surface-variant">Generate task breakdown</span>
+</div>
+<span class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Thread 2 -->
+<div class="flex flex-col gap-stack-gap">
+<div class="flex items-start gap-4 max-w-[85%]">
+<div class="flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">mic</span>
+</div>
+<div class="flex flex-col">
+<p class="font-body-lg text-on-surface-variant leading-relaxed">
+                        I want to remember that quote about digital weightlessness from the book I'm reading.
+                    </p>
+<span class="font-label-sm text-[10px] text-outline mt-1 uppercase">09:15 AM</span>
+</div>
+</div>
+<div class="pl-9 py-4 border-l border-outline-variant/30">
+<div class="p-6 bg-surface-container-low rounded-xl border border-outline-variant/20">
+<p class="font-body-lg text-secondary italic">
+                        "True clarity isn't found in the absence of noise, but in the presence of digital weightlessness—where tools support the mind without tethering the soul."
+                    </p>
+<div class="mt-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">bookmark</span>
+<span class="font-label-md text-[10px] text-primary uppercase">Saved to thoughts</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Day Divider -->
+<div class="flex items-center gap-4 py-4">
+<div class="h-[1px] flex-grow bg-outline-variant/30"></div>
+<span class="font-label-sm text-outline text-[10px] uppercase">Yesterday</span>
+<div class="h-[1px] flex-grow bg-outline-variant/30"></div>
+</div>
+<!-- Thread 3 (Summary Recap) -->
+<div class="p-8 bg-surface-container rounded-xl shadow-sm border border-outline-variant/30 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-primary text-6xl">auto_awesome</span>
+</div>
+<h3 class="font-headline-md text-primary mb-2 text-2xl">Daily Synthesis</h3>
+<p class="font-body-lg text-on-surface-variant mb-6 opacity-90">
+                Yesterday, you focused heavily on "Refining the Vision." You captured 4 thoughts related to focus and felt most creative in the late afternoon.
+            </p>
+<button class="px-6 py-3 bg-primary text-white rounded font-label-md text-[10px] uppercase tracking-widest hover:bg-primary/90 transition-all shadow-md">
+                View Full Recap
+            </button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-full z-50">
+<!-- Blur Backdrop Layer -->
+<div class="absolute inset-0 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/30 shadow-sm"></div>
+<!-- Navigation Content -->
+<div class="relative flex justify-around items-center px-4 pb-8 pt-2">
+<!-- Home -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors w-16 py-2 active:scale-90 transition-transform duration-300 ease-out">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-label-md text-[10px] uppercase">Home</span>
+</button>
+<!-- Schedule -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors w-16 py-2 active:scale-90 transition-transform duration-300 ease-out">
+<span class="material-symbols-outlined mb-1">calendar_today</span>
+<span class="font-label-md text-[10px] uppercase">Log</span>
+</button>
+<!-- Voice Hub (Center Mic) -->
+<div class="relative -top-6">
+<div class="absolute inset-0 bg-primary/20 rounded-full blur-xl scale-150 animate-pulse"></div>
+<button class="relative w-16 h-16 bg-gradient-to-br from-primary to-primary-container rounded-full flex items-center justify-center text-white shadow-lg active:scale-90 transition-transform duration-300">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">mic</span>
+</button>
+</div>
+<!-- Thoughts (Active Tab) -->
+<button class="flex flex-col items-center justify-center text-primary font-bold w-16 py-2 active:scale-90 transition-transform duration-300 ease-out">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+<span class="font-label-md text-[10px] uppercase">Thoughts</span>
+</button>
+<!-- Recap -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors w-16 py-2 active:scale-90 transition-transform duration-300 ease-out">
+<span class="material-symbols-outlined mb-1">auto_awesome</span>
+<span class="font-label-md text-[10px] uppercase">Recap</span>
+</button>
+</div>
+</nav>
+<script>
+    // Micro-interactions for the "Voice Hub" pulse
+    document.addEventListener('DOMContentLoaded', () => {
+        const micButton = document.querySelector('nav .relative.-top-6 button');
+        const pulseGlow = document.querySelector('nav .relative.-top-6 .absolute');
+
+        micButton.addEventListener('mousedown', () => {
+            pulseGlow.classList.add('scale-[2]');
+            pulseGlow.style.opacity = '0.4';
+        });
+
+        micButton.addEventListener('mouseup', () => {
+            pulseGlow.classList.remove('scale-[2]');
+            pulseGlow.style.opacity = '1';
+        });
+    });
+
+    // Simple scroll behavior for header
+    let lastScroll = 0;
+    const header = document.querySelector('header');
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+        if (currentScroll > lastScroll && currentScroll > 100) {
+            header.style.transform = 'translateY(-100%)';
+        } else {
+            header.style.transform = 'translateY(0)';
+        }
+        header.style.transition = 'transform 0.3s ease';
+        lastScroll = currentScroll;
+    });
+</script>
+</body></html>

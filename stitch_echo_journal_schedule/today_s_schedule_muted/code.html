@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pinapeg - Schedule</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&amp;family=Libre+Caslon+Text:wght@400&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "on-secondary-fixed-variant": "#474744",
+                "primary-fixed-dim": "#cec5be",
+                "secondary-fixed-dim": "#c8c6c2",
+                "surface-container": "#f1edeb",
+                "surface-variant": "#e6e2e0",
+                "secondary-fixed": "#e4e2dd",
+                "primary-fixed": "#ebe1da",
+                "on-primary-container": "#bab1ab",
+                "outline": "#7e766f",
+                "error-container": "#ffdad6",
+                "on-primary": "#ffffff",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-fixed": "#1c1c18",
+                "surface-container-low": "#f7f3f1",
+                "outline-variant": "#cfc5bd",
+                "on-secondary-container": "#63635f",
+                "error": "#ba1a1a",
+                "secondary-container": "#e1dfdb",
+                "surface-bright": "#fdf8f6",
+                "primary": "#332e29",
+                "on-primary-fixed": "#1f1b17",
+                "on-surface-variant": "#4c4540",
+                "surface": "#fdf8f6",
+                "on-background": "#1c1b1a",
+                "background": "#fdf8f6",
+                "secondary": "#5e5e5b",
+                "on-tertiary-fixed-variant": "#484742",
+                "inverse-surface": "#31302f",
+                "inverse-primary": "#cec5be",
+                "surface-container-high": "#ece7e5",
+                "surface-dim": "#ddd9d7",
+                "inverse-on-surface": "#f4f0ee",
+                "tertiary-container": "#474541",
+                "primary-container": "#4a443f",
+                "tertiary-fixed": "#e6e2dc",
+                "on-error": "#ffffff",
+                "on-surface": "#1c1b1a",
+                "tertiary-fixed-dim": "#cac6c0",
+                "on-secondary-fixed": "#1b1c19",
+                "on-error-container": "#93000a",
+                "surface-tint": "#645d58",
+                "tertiary": "#302f2b",
+                "on-tertiary-container": "#b6b3ad",
+                "surface-container-highest": "#e6e2e0",
+                "on-tertiary": "#ffffff",
+                "on-secondary": "#ffffff",
+                "on-primary-fixed-variant": "#4c4641"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+        },
+        "spacing": {
+                "margin-desktop": "64px",
+                "gutter": "24px",
+                "max-width": "1280px",
+                "unit": "4px",
+                "margin-mobile": "20px"
+        },
+        "fontFamily": {
+                "label-md": [
+                        "Hanken Grotesk"
+                ],
+                "display-lg": [
+                        "Libre Caslon Text"
+                ],
+                "headline-sm": [
+                        "Libre Caslon Text"
+                ],
+                "label-sm": [
+                        "Hanken Grotesk"
+                ],
+                "headline-md": [
+                        "Libre Caslon Text"
+                ],
+                "body-lg": [
+                        "Hanken Grotesk"
+                ],
+                "display-lg-mobile": [
+                        "Libre Caslon Text"
+                ],
+                "body-md": [
+                        "Hanken Grotesk"
+                ]
+        },
+        "fontSize": {
+                "label-md": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "display-lg": [
+                        "64px",
+                        {
+                                "lineHeight": "72px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-sm": [
+                        "24px",
+                        {
+                                "lineHeight": "32px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "label-sm": [
+                        "12px",
+                        {
+                                "lineHeight": "16px",
+                                "letterSpacing": "0.03em",
+                                "fontWeight": "500"
+                        }
+                ],
+                "headline-md": [
+                        "32px",
+                        {
+                                "lineHeight": "40px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "body-lg": [
+                        "18px",
+                        {
+                                "lineHeight": "28px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "display-lg-mobile": [
+                        "40px",
+                        {
+                                "lineHeight": "48px",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "400"
+                        }
+                ],
+                "body-md": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+      },
+    },
+  }
+</script>
+<style>
+    body {
+      background-color: #fdf8f6;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .soft-card-shadow {
+      box-shadow: 0 12px 32px -4px rgba(51, 46, 41, 0.06);
+    }
+    .active-indicator-pulse {
+      animation: indicator-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes indicator-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .6; transform: scale(1.1); }
+    }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="font-body-md text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 bg-background/95 backdrop-blur-sm flex justify-between items-center px-6 py-4 border-b border-outline-variant/20">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container border border-outline-variant/30">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJngYk_nLENeqZBqgHvSW9zCNOT_pKVd6u32zb5C-E_d706riVN5uCrruSsBobMwISj8C7qylN6WpkkOHYmfDXC-IA0xojXOFU2LY47410UaIeEf_srNBSVbpd26Vf8sUN6ZdrL2zYpbUnFrlw4kMrTXDAZ__Sa3puiEj2iw8Xb0eltmCeEQarqolc2ntIcnYHkCJ8DouNGsk4h4kOv5IdAqiobUrmuudVeVMO3-mVPbHlaEmFmXUNSQK8UwEiIYe6NbDkOAVfBYE"/>
+</div>
+<h1 class="font-headline-md text-primary tracking-tight">Pinapeg</h1>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:opacity-80 transition-opacity p-2 active:scale-95 transition-transform duration-200">
+      settings
+    </button>
+</header>
+<main class="px-6 pt-6">
+<!-- Timeframe Selector -->
+<div class="flex bg-surface-container-low p-1 rounded-full mb-10 w-fit mx-auto border border-outline-variant/40">
+<button class="px-6 py-2 rounded-full font-label-sm text-label-sm bg-primary text-on-primary transition-all duration-300">Day</button>
+<button class="px-6 py-2 rounded-full font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container-high transition-colors">Week</button>
+<button class="px-6 py-2 rounded-full font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container-high transition-colors">Month</button>
+</div>
+<!-- Date Header -->
+<div class="mb-6">
+<h2 class="font-display-lg-mobile text-on-background">Today</h2>
+<p class="font-body-lg text-on-surface-variant">Thursday, Oct 24</p>
+</div>
+<!-- Schedule Feed -->
+<div class="space-y-10">
+<!-- Morning Group -->
+<section>
+<div class="flex items-center gap-4 mb-4">
+<span class="font-label-sm text-outline uppercase tracking-widest text-[10px]">Morning</span>
+<div class="h-[1px] flex-grow bg-outline-variant/40"></div>
+</div>
+<div class="space-y-4">
+<!-- Event Card: 10:00 AM -->
+<div class="relative bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/40 soft-card-shadow flex flex-col gap-2 group transition-all duration-300 hover:translate-y-[-2px]">
+<!-- Active Indicator -->
+<div class="absolute left-[-2px] top-1/2 -translate-y-1/2 w-1.5 h-12 bg-primary rounded-full active-indicator-pulse"></div>
+<div class="flex justify-between items-start">
+<span class="font-label-sm text-primary tracking-wide text-xs">10:00 AM — 11:00 AM</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">groups</span>
+</div>
+<h3 class="font-headline-sm text-on-background">Design Sync</h3>
+<p class="font-body-md text-on-surface-variant">Reviewing the new Sanctuary glassmorphism components with the UI team.</p>
+<div class="flex items-center gap-2 mt-2">
+<span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-label-sm font-label-sm">Work</span>
+<span class="px-3 py-1 rounded-full bg-surface-container text-on-surface-variant text-label-sm font-label-sm">Meeting</span>
+</div>
+</div>
+<!-- Event Card: 11:45 AM -->
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/40 flex flex-col gap-2 opacity-90">
+<div class="flex justify-between items-start">
+<span class="font-label-sm text-outline tracking-wide uppercase text-xs">11:45 AM</span>
+<span class="material-symbols-outlined text-outline">restaurant</span>
+</div>
+<h3 class="font-headline-sm text-on-surface-variant/80">Quick Lunch</h3>
+<p class="font-body-md text-on-surface-variant italic">Don't forget to stay hydrated.</p>
+</div>
+</div>
+</section>
+<!-- Afternoon Group -->
+<section>
+<div class="flex items-center gap-4 mb-4">
+<span class="font-label-sm text-outline uppercase tracking-widest text-[10px]">Afternoon</span>
+<div class="h-[1px] flex-grow bg-outline-variant/40"></div>
+</div>
+<div class="space-y-4">
+<!-- Event Card: 2:30 PM -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/40 soft-card-shadow flex flex-col gap-2 transition-all duration-300 hover:translate-y-[-2px]">
+<div class="flex justify-between items-start">
+<span class="font-label-sm text-on-surface-variant tracking-wide text-xs">2:30 PM</span>
+<span class="material-symbols-outlined text-on-surface-variant">shopping_basket</span>
+</div>
+<h3 class="font-headline-sm text-on-background">Pick up groceries</h3>
+<p class="font-body-md text-on-surface-variant">Local market: Almond milk, fresh basil, and sourdough bread.</p>
+<div class="mt-4 overflow-hidden rounded-lg h-32 relative">
+<img alt="Minimalist grocery store" class="w-full h-full object-cover grayscale-[0.3]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFh8uYJl7IPb2-Ux6RC72Zz3-D73JyCE9eWIT-kFhX6WvZMRr1odNmcNzQ9G2P8eDesFG1EFe3Rek_Wf4ClBvh0GToNBS9-K7qbygxzI4NKtE8tP6WRIuHE2r0VUNzodGCdMaxajxOKS2qSYYNFNvG9hc4SygtRoGI76FnNlAdz-iCPmkcNBfAidArDuXoq-ZK50Yy2gHrjwszIFygiicDOvdtpY6L2yJk8d19SfppJiBN5RahRSurIXTVMsQvHuXcdzezonIvsBQ"/>
+<div class="absolute inset-0 bg-primary/5"></div>
+</div>
+</div>
+<!-- Event Card: 4:00 PM -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/40 soft-card-shadow flex flex-col gap-2 transition-all duration-300 hover:translate-y-[-2px]">
+<div class="flex justify-between items-start">
+<span class="font-label-sm text-on-surface-variant tracking-wide text-xs">4:00 PM</span>
+<span class="material-symbols-outlined text-on-surface-variant">self_improvement</span>
+</div>
+<h3 class="font-headline-sm text-on-background">Mindful Walk</h3>
+<p class="font-body-md text-on-surface-variant">Daily recharge at the park. Focus on breath and awareness.</p>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Voice Hub Floating Action -->
+<div class="fixed bottom-24 left-1/2 -translate-x-1/2 z-40">
+<div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-2xl active:scale-90 transition-all duration-300 ease-out cursor-pointer group" id="mic-hub">
+<span class="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 1;">mic</span>
+</div>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-8 pt-2 bg-surface/90 backdrop-blur-xl z-50 border-t border-outline-variant/20">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors p-2 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-[10px]">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary p-2 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-label-sm text-[10px]">Schedule</span>
+</a>
+<div class="w-12 h-12 flex items-center justify-center">
+<!-- Spacer for central mic -->
+</div>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors p-2 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">lightbulb</span>
+<span class="font-label-sm text-[10px]">Thoughts</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors p-2 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="font-label-sm text-[10px]">Recap</span>
+</a>
+</nav>
+<script>
+    // Micro-interaction for the central mic
+    const micButton = document.getElementById('mic-hub');
+    let isThinking = false;
+    
+    micButton.addEventListener('click', () => {
+      isThinking = !isThinking;
+      if(isThinking) {
+        micButton.classList.add('animate-pulse');
+        micButton.style.boxShadow = '0 0 24px 8px rgba(51, 46, 41, 0.3)';
+      } else {
+        micButton.classList.remove('animate-pulse');
+        micButton.style.boxShadow = '';
+      }
+    });
+
+    // Timeframe selector toggle
+    const selectors = document.querySelectorAll('.rounded-full.font-label-sm');
+    selectors.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const container = btn.closest('.flex.bg-surface-container-low');
+        if (!container) return;
+        container.querySelectorAll('button').forEach(b => {
+          b.classList.remove('bg-primary', 'text-on-primary');
+          b.classList.add('text-on-surface-variant');
+        });
+        btn.classList.add('bg-primary', 'text-on-primary');
+        btn.classList.remove('text-on-surface-variant');
+      });
+    });
+  </script>
+</body></html>

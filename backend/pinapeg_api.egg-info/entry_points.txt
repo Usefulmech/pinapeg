@@ -1,0 +1,2 @@
+[console_scripts]
+pinapeg-worker = app.worker:main

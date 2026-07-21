@@ -1,0 +1,67 @@
+services:
+  - type: web
+    name: pinapeg-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+    buildCommand: python -m pip install --upgrade pip && python -m pip install -e .
+    preDeployCommand: python -m alembic upgrade head
+    startCommand: python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    buildFilter:
+      paths:
+        - backend/**
+        - render.yaml
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: ALLOW_DEV_IDENTITY
+        value: "false"
+      - key: STORAGE_MODE
+        value: postgres
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        sync: false
+      - key: REDIS_USERNAME
+        sync: false
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: REDIS_SSL
+        value: "false"
+      - key: CORS_ORIGINS
+        sync: false
+      - key: FRONTEND_APP_URL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: EMBEDDING_MODEL
+        value: text-embedding-3-small
+      - key: TRANSCRIPTION_MODEL
+        value: whisper-1
+      - key: SUMMARY_MODEL
+        value: gpt-4o-mini
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false
+      - key: GOOGLE_OAUTH_STATE_SECRET
+        sync: false
+      - key: TOKEN_ENCRYPTION_KEY
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+
+previews:
+  generation: none

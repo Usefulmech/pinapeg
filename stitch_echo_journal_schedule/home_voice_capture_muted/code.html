@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pinapeg - Digital Sanctuary</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&amp;family=Libre+Caslon+Text:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-secondary-fixed-variant": "#474744",
+                "primary-fixed-dim": "#cec5be",
+                "secondary-fixed-dim": "#c8c6c2",
+                "surface-container": "#f1edeb",
+                "surface-variant": "#e6e2e0",
+                "secondary-fixed": "#e4e2dd",
+                "primary-fixed": "#ebe1da",
+                "on-primary-container": "#bab1ab",
+                "outline": "#7e766f",
+                "error-container": "#ffdad6",
+                "on-primary": "#ffffff",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-fixed": "#1c1c18",
+                "surface-container-low": "#f7f3f1",
+                "outline-variant": "#cfc5bd",
+                "on-secondary-container": "#63635f",
+                "error": "#ba1a1a",
+                "secondary-container": "#e1dfdb",
+                "surface-bright": "#fdf8f6",
+                "primary": "#332e29",
+                "on-primary-fixed": "#1f1b17",
+                "on-surface-variant": "#4c4540",
+                "surface": "#fdf8f6",
+                "on-background": "#1c1b1a",
+                "background": "#fdf8f6",
+                "secondary": "#5e5e5b",
+                "on-tertiary-fixed-variant": "#484742",
+                "inverse-surface": "#31302f",
+                "inverse-primary": "#cec5be",
+                "surface-container-high": "#ece7e5",
+                "surface-dim": "#ddd9d7",
+                "inverse-on-surface": "#f4f0ee",
+                "tertiary-container": "#474541",
+                "primary-container": "#4a443f",
+                "tertiary-fixed": "#e6e2dc",
+                "on-error": "#ffffff",
+                "on-surface": "#1c1b1a",
+                "tertiary-fixed-dim": "#cac6c0",
+                "on-secondary-fixed": "#1b1c19",
+                "on-error-container": "#93000a",
+                "surface-tint": "#645d58",
+                "tertiary": "#302f2b",
+                "on-tertiary-container": "#b6b3ad",
+                "surface-container-highest": "#e6e2e0",
+                "on-tertiary": "#ffffff",
+                "on-secondary": "#ffffff",
+                "on-primary-fixed-variant": "#4c4641"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "spacing": {
+                "margin-desktop": "64px",
+                "gutter": "24px",
+                "max-width": "1280px",
+                "unit": "4px",
+                "margin-mobile": "20px"
+            },
+            "fontFamily": {
+                "label-md": ["Hanken Grotesk"],
+                "display-lg": ["Libre Caslon Text"],
+                "headline-sm": ["Libre Caslon Text"],
+                "label-sm": ["Hanken Grotesk"],
+                "headline-md": ["Libre Caslon Text"],
+                "body-lg": ["Hanken Grotesk"],
+                "display-lg-mobile": ["Libre Caslon Text"],
+                "body-md": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "display-lg": ["64px", {"lineHeight": "72px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                "headline-sm": ["24px", {"lineHeight": "32px", "fontWeight": "400"}],
+                "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                "headline-md": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                "display-lg-mobile": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #fdf8f6;
+            color: #1c1b1a;
+            overflow-x: hidden;
+            font-family: 'Hanken Grotesk', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.15; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+
+        .pulse-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 9999px;
+            background-color: #332e29; /* primary desaturated brown */
+            animation: pulse-ring 4s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+
+        .pulse-effect-delay {
+            animation-delay: 2s;
+        }
+
+        .glass-nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .paper-texture {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.015;
+            background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+            z-index: 10;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 9999px;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+        body {
+            min-height: 100dvh;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+<div class="paper-texture"></div>
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky bg-background/0 z-50">
+<div class="flex justify-between items-center px-[20px] py-6 w-full">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant/30">
+<img alt="Alex's Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHNdnfY7pOiQp34BcCsfYJWSkvdM5G8bNXUF1HYvUBLCZDkh3fzMOGgF0A_sO-ALHz9NP9NyZ6EGvNnQsnzxaDxHiS7aW_4CJ1FECp8TTjAkPY_dGA5zZPcTwdyo_Bvm8ytKFSQD1S73Z-TNHhrZ3u0PKcXxNT46UbgvLTo8y82mfIhsF3f886RWGEU3Eu-fPQvn0Kz4q1Un4M3j9BEoegq21nr4md8m7-RU4IUN-uIhzvZj51VPK4JPCVWdIpObS3iikOXibaITw"/>
+</div>
+<div class="flex flex-col">
+<span class="text-label-sm text-secondary/60 uppercase tracking-widest">Pinapeg</span>
+<h1 class="font-headline-sm text-primary tracking-tight">Good morning, Alex</h1>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant/50 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary text-[24px]">settings</span>
+</button>
+</div>
+</header>
+<!-- Main Content: Voice Hub Canvas -->
+<main class="flex-grow flex flex-col items-center justify-center relative px-[20px] -mt-12">
+<!-- Voice Hub Container -->
+<div class="relative flex flex-col items-center">
+<!-- Pulse Layers -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="pulse-effect w-64 h-64"></div>
+<div class="pulse-effect pulse-effect-delay w-64 h-64"></div>
+</div>
+<!-- Central Mic Button -->
+<button class="relative z-20 w-48 h-48 rounded-full overflow-hidden flex items-center justify-center shadow-xl shadow-primary/10 active:scale-95 transition-transform duration-500 ease-out group">
+<!-- Shader Layer -->
+<div class="absolute inset-0 w-full h-full" id="mic-shader-container">
+<canvas id="mic-canvas"></canvas>
+</div>
+<!-- Mic Icon -->
+<span class="material-symbols-outlined text-white text-[56px] font-variation-settings: 'FILL' 1; relative z-10">mic</span>
+</button>
+<!-- Status Text -->
+<div class="mt-12 text-center space-y-4">
+<p class="font-body-md text-on-surface-variant/60 tracking-wide italic">Listening for your thoughts...</p>
+<div class="flex gap-2 justify-center items-end h-8">
+<!-- Audio Visualizer in Primary and Neutrals -->
+<div class="w-1 bg-primary/20 rounded-full h-3 animate-[bounce_1.2s_infinite]"></div>
+<div class="w-1 bg-primary/40 rounded-full h-6 animate-[bounce_0.8s_infinite]"></div>
+<div class="w-1 bg-primary rounded-full h-4 animate-[bounce_1.5s_infinite]"></div>
+<div class="w-1 bg-primary/50 rounded-full h-7 animate-[bounce_1s_infinite]"></div>
+<div class="w-1 bg-primary/10 rounded-full h-2 animate-[bounce_1.8s_infinite]"></div>
+</div>
+</div>
+</div>
+<!-- Suggestion Chips -->
+<div class="absolute bottom-16 flex gap-3 overflow-x-auto w-full px-[20px] no-scrollbar justify-center">
+<div class="bg-surface-container-low px-5 py-2.5 rounded-full border border-outline-variant/20 whitespace-nowrap active:bg-surface-variant transition-colors">
+<span class="text-on-surface-variant text-[11px] font-label-md uppercase tracking-[0.1em]">Dream journal</span>
+</div>
+<div class="bg-surface-container-low px-5 py-2.5 rounded-full border border-outline-variant/20 whitespace-nowrap active:bg-surface-variant transition-colors">
+<span class="text-on-surface-variant text-[11px] font-label-md uppercase tracking-[0.1em]">Daily focus</span>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-8 pt-3 glass-nav bg-surface/90 border-t border-outline-variant/20 z-50">
+<!-- Home (Active) -->
+<a class="flex flex-col items-center justify-center text-primary transition-all active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-[9px] mt-1 uppercase tracking-[0.15em] font-label-md">Home</span>
+</a>
+<!-- Schedule -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary transition-all active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-[9px] mt-1 uppercase tracking-[0.15em] font-label-md">Schedule</span>
+</a>
+<!-- FAB -->
+<div class="relative -top-7">
+<div class="w-14 h-14 bg-primary rounded-full flex items-center justify-center text-white shadow-lg shadow-primary/20 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">mic</span>
+</div>
+</div>
+<!-- Thoughts -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary transition-all active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">lightbulb</span>
+<span class="text-[9px] mt-1 uppercase tracking-[0.15em] font-label-md">Thoughts</span>
+</a>
+<!-- Recap -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary transition-all active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="text-[9px] mt-1 uppercase tracking-[0.15em] font-label-md">Recap</span>
+</a>
+</nav>
+<script>
+    // Micro-interactions for the visualizer
+    const bars = document.querySelectorAll('.animate-\\[bounce\\]');
+    bars.forEach((bar) => {
+        bar.style.animationDuration = `${0.6 + Math.random()}s`;
+    });
+
+    // Dynamic Greeting
+    const hour = new Date().getHours();
+    const greetingElement = document.querySelector('h1');
+    if (greetingElement) {
+        if (hour >= 12 && hour < 17) greetingElement.innerText = "Good afternoon, Alex";
+        else if (hour >= 17) greetingElement.innerText = "Good evening, Alex";
+    }
+
+    // WebGL Shader Implementation - Updated for Desaturated Brown Tones
+    const canvas = document.getElementById('mic-canvas');
+    const gl = canvas.getContext('webgl');
+
+    if (gl) {
+        const vsSource = `
+            attribute vec4 a_position;
+            attribute vec2 a_texCoord;
+            varying vec2 v_texCoord;
+            void main() {
+                gl_Position = a_position;
+                v_texCoord = a_texCoord;
+            }
+        `;
+
+        const fsSource = `
+            precision highp float;
+            varying vec2 v_texCoord;
+            uniform float u_time;
+            uniform vec2 u_resolution;
+
+            float s_noise(vec2 p) {
+                return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+            }
+
+            float noise(vec2 p) {
+                vec2 i = floor(p);
+                vec2 f = fract(p);
+                f = f * f * (3.0 - 2.0 * f);
+                float a = s_noise(i);
+                float b = s_noise(i + vec2(1.0, 0.0));
+                float c = s_noise(i + vec2(0.0, 1.0));
+                float d = s_noise(i + vec2(1.0, 1.0));
+                return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+            }
+
+            void main() {
+                vec2 uv = (v_texCoord - 0.5) * 2.0;
+                uv.x *= u_resolution.x / u_resolution.y;
+                float dist = length(uv);
+                float pulse = 0.55 + 0.05 * sin(u_time * 1.5);
+                
+                float waves = 0.0;
+                for(float i = 1.0; i < 4.0; i++) {
+                    vec2 p = uv * (1.2 + i * 0.3);
+                    float t = u_time * (0.6 + i * 0.1);
+                    waves += noise(p + vec2(t, t * 0.4)) / i;
+                }
+                
+                // Color palette based on the desaturated brown primary (#332e29)
+                vec3 colorA = vec3(0.2, 0.18, 0.16); // #332e29 (primary)
+                vec3 colorB = vec3(0.4, 0.38, 0.36); // primary variant/lighter
+                vec3 finalColor = mix(colorA, colorB, waves * 0.5 + 0.5);
+                
+                float alpha = smoothstep(pulse + 0.15, pulse - 0.15, dist + waves * 0.08);
+                float glow = 0.03 / (dist + 0.05);
+                
+                gl_FragColor = vec4(finalColor + glow * colorB, alpha * 0.95);
+            }
+        `;
+
+        function createShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            return shader;
+        }
+
+        const program = gl.createProgram();
+        gl.attachShader(program, createShader(gl, gl.VERTEX_SHADER, vsSource));
+        gl.attachShader(program, createShader(gl, gl.FRAGMENT_SHADER, fsSource));
+        gl.linkProgram(program);
+        gl.useProgram(program);
+
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+            -1, -1, 1, -1, -1, 1,
+            -1, 1, 1, -1, 1, 1,
+        ]), gl.STATIC_DRAW);
+
+        const positionLocation = gl.getAttribLocation(program, "a_position");
+        gl.enableVertexAttribArray(positionLocation);
+        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+        const texCoordBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+            0, 0, 1, 0, 0, 1,
+            0, 1, 1, 0, 1, 1,
+        ]), gl.STATIC_DRAW);
+
+        const texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
+        gl.enableVertexAttribArray(texCoordLocation);
+        gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+        const timeLocation = gl.getUniformLocation(program, "u_time");
+        const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+
+        function render(time) {
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            if (canvas.width !== width || canvas.height !== height) {
+                canvas.width = width;
+                canvas.height = height;
+            }
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            gl.clearColor(0, 0, 0, 0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.uniform1f(timeLocation, time * 0.001);
+            gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
+    }
+</script>
+</body></html>

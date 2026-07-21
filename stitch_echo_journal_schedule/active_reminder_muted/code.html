@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&amp;family=Libre+Caslon+Text:wght@400&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#474744",
+                        "primary-fixed-dim": "#cec5be",
+                        "secondary-fixed-dim": "#c8c6c2",
+                        "surface-container": "#f1edeb",
+                        "surface-variant": "#e6e2e0",
+                        "secondary-fixed": "#e4e2dd",
+                        "primary-fixed": "#ebe1da",
+                        "on-primary-container": "#bab1ab",
+                        "outline": "#7e766f",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed": "#1c1c18",
+                        "surface-container-low": "#f7f3f1",
+                        "outline-variant": "#cfc5bd",
+                        "on-secondary-container": "#63635f",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#e1dfdb",
+                        "surface-bright": "#fdf8f6",
+                        "primary": "#332e29",
+                        "on-primary-fixed": "#1f1b17",
+                        "on-surface-variant": "#4c4540",
+                        "surface": "#fdf8f6",
+                        "on-background": "#1c1b1a",
+                        "background": "#fdf8f6",
+                        "secondary": "#5e5e5b",
+                        "on-tertiary-fixed-variant": "#484742",
+                        "inverse-surface": "#31302f",
+                        "inverse-primary": "#cec5be",
+                        "surface-container-high": "#ece7e5",
+                        "surface-dim": "#ddd9d7",
+                        "inverse-on-surface": "#f4f0ee",
+                        "tertiary-container": "#474541",
+                        "primary-container": "#4a443f",
+                        "tertiary-fixed": "#e6e2dc",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1c1b1a",
+                        "tertiary-fixed-dim": "#cac6c0",
+                        "on-secondary-fixed": "#1b1c19",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#645d58",
+                        "tertiary": "#302f2b",
+                        "on-tertiary-container": "#b6b3ad",
+                        "surface-container-highest": "#e6e2e0",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#4c4641"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "64px",
+                        "gutter": "24px",
+                        "max-width": "1280px",
+                        "unit": "4px",
+                        "margin-mobile": "20px",
+                        "container-padding": "24px",
+                        "stack-gap": "16px",
+                        "section-gap": "40px",
+                        "touch-target-min": "48px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Hanken Grotesk"],
+                        "display-lg": ["Libre Caslon Text"],
+                        "headline-sm": ["Libre Caslon Text"],
+                        "label-sm": ["Hanken Grotesk"],
+                        "headline-md": ["Libre Caslon Text"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "display-lg-mobile": ["Libre Caslon Text"],
+                        "body-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-lg": ["64px", {"lineHeight": "72px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                        "headline-sm": ["24px", {"lineHeight": "32px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                        "headline-md": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg-mobile": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #fdf8f6; /* surface */
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+        .soft-depth {
+            box-shadow: 0 20px 40px -12px rgba(51, 46, 41, 0.08);
+        }
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            background: rgba(253, 248, 246, 0.85);
+        }
+        @keyframes gentle-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+        .animate-pulse-slow {
+            animation: gentle-pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-body-md text-on-background overflow-hidden">
+<!-- Main Overlay Container -->
+<main class="relative z-10 flex-1 flex items-center justify-center p-container-padding">
+<!-- Active Reminder Modal -->
+<div class="w-full max-w-lg glass-panel border border-outline-variant/30 rounded-xl p-8 flex flex-col items-center text-center soft-depth transition-all duration-700 ease-out transform translate-y-0 opacity-100">
+<!-- Context Icon/Illustration -->
+<div class="mb-section-gap relative">
+<div class="w-24 h-24 rounded-full bg-secondary-container flex items-center justify-center animate-pulse-slow">
+<span class="material-symbols-outlined text-primary text-[48px]">nature_people</span>
+</div>
+<div class="absolute -top-2 -right-2 bg-primary text-on-primary text-[10px] px-2 py-1 rounded-full font-label-sm tracking-widest uppercase">Active Now</div>
+</div>
+<!-- Reminder Text Content -->
+<div class="space-y-4 mb-section-gap">
+<p class="font-label-sm text-label-sm text-primary tracking-widest uppercase">Digital Sanctuary Reminder</p>
+<h1 class="font-headline-md text-headline-md text-on-background">Mindful Walk</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[280px] mx-auto">
+                    A moment for clarity. Your scheduled time to reconnect with your surroundings.
+                </p>
+</div>
+<!-- Action Cluster -->
+<div class="w-full flex flex-col gap-stack-gap">
+<!-- Primary Action: Done -->
+<button class="w-full h-touch-target-min bg-primary text-on-primary rounded-full font-label-md text-label-md flex items-center justify-center shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all">
+                    Done
+                </button>
+<!-- Secondary Actions Row -->
+<div class="flex gap-4 w-full">
+<button class="flex-1 h-touch-target-min border border-outline bg-transparent text-primary rounded-full font-body-md text-body-md flex items-center justify-center hover:bg-primary/5 transition-colors">
+                        Snooze
+                    </button>
+<button class="flex-1 h-touch-target-min bg-surface-container text-on-surface-variant rounded-full font-body-md text-body-md flex items-center justify-center hover:bg-surface-container-high transition-colors" id="relevanceToggle">
+                        Still Relevant?
+                    </button>
+</div>
+</div>
+<!-- Contextual Image (Softened) -->
+<div class="mt-section-gap w-full aspect-[21/9] rounded-lg overflow-hidden border border-outline-variant/20 opacity-60 grayscale-[30%]">
+<img alt="A serene landscape featuring a winding path through a lush green park during the golden hour. The sunlight is warm and soft, casting long shadows and creating a peaceful, contemplative atmosphere. The style is cinematic and high-fidelity, emphasizing natural textures and a calm, light-mode color palette of greens, creams, and soft teals." class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDBlFYvX-O9tun4-bxeo5o9ctyPNqO42OhhIEzdPyq6x7ZW-ofC74MryYC8d5xVoc3ahsIbYi98IE-l8A5oI9CGQ027z48ImzUCZMOi0m6rvleC516PFC87TafU9of-BF-o3muiflGRQT6fWrXFuE4WrCdx_SP98LcI7y5hGTZfpJHd63Ud0lIS1SUQc6uk0N_mOvkXx8kJ-XR2UuQ6LgYxH1r2YFhbk8dpFEi6q3AKIfPQNHqmUEks5CltbZrRarDL9so3m3U7us"/>
+</div>
+</div>
+</main>
+<!-- Interactive Script for micro-interactions -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const relevanceBtn = document.getElementById('relevanceToggle');
+            relevanceBtn.addEventListener('click', () => {
+                relevanceBtn.innerHTML = '<span class="material-symbols-outlined text-[18px] mr-2">check</span>Yes, keep it';
+                relevanceBtn.classList.remove('bg-surface-container');
+                relevanceBtn.classList.add('bg-secondary-container', 'text-on-secondary-container');
+                
+                setTimeout(() => {
+                    relevanceBtn.innerText = 'Still Relevant?';
+                    relevanceBtn.classList.add('bg-surface-container');
+                    relevanceBtn.classList.remove('bg-secondary-container', 'text-on-secondary-container');
+                }, 2000);
+            });
+        });
+    </script>
+</body></html>
