@@ -11,7 +11,6 @@ from .config import settings
 from .essence import create_daily_essence
 from .google_oauth import PROVIDERS, authorization_url, calendar_event_count, decode_state, exchange_code, gmail_message_count, refresh_access_token, userinfo
 from .paper_intelligence import answer_paper_question, enrich_paper
-from .prompt_queue import redis_ping
 from .prompting import build_prompt_plan
 from .schemas import CaptureAudioRequest, CaptureTextRequest, ConfigStatusOut, DailyEssenceOut, DecompositionOut, EntryOut, EntryUpdateRequest, HabitAnalyticsOut, HabitLogOut, IntegrationConnectOut, IntegrationSyncOut, IntegrationsOut, MeOut, OAuthConnectionOut, PaperEnrichmentOut, PaperQuestionOut, PaperQuestionRequest, PromptPlanOut, ProposalOut, RecapOut, RecapRequest, WeeklyReviewOut
 from .services import create_recap, create_weekly_review, make_audio_proposal, make_proposal
