@@ -3876,13 +3876,20 @@ h2 {
   margin-top: 0;
 }
 
+/* Only the heading that has the search button uses flex-row inline on mobile */
+.page-heading:has(.search-inline) {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
 @media (max-width: 640px) {
-  .page-heading {
-    flex-wrap: nowrap;
+  .page-heading:has(.search-inline) {
+    flex-direction: row;
     align-items: center;
   }
   .search-inline {
+    flex-shrink: 0;
     margin-left: auto;
   }
 }
-
