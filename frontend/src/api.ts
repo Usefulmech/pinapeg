@@ -5,7 +5,12 @@ const base = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/v1';
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const authHeaders = await getAuthHeaders();
-  const response = await fetch(`${base}${path}`, { ...options, headers: { 'Content-Type': 'application/json', ...authHeaders, ...options.headers } });
+  let response: Response;
+  try {
+    response = await fetch(`${base}${path}`, { ...options, headers: { 'Content-Type': 'application/json', ...authHeaders, ...options.headers } });
+  } catch {
+    throw new Error('Unable to connect to the backend API. Please check your backend server status.');
+  }
   if (!response.ok) {
     const body = await response.json().catch(() => null);
     throw new Error(body?.detail ?? body?.message ?? 'Something went wrong. Please try again.');

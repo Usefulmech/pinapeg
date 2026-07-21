@@ -8,6 +8,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       manifest: {
         id: '/?source=pwa',
         name: 'Pinapeg',
@@ -22,7 +25,6 @@ export default defineConfig({
         categories: ['productivity', 'education', 'lifestyle'],
         icons: [{ src: '/pin.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }]
       },
-      workbox: { navigateFallback: '/index.html', runtimeCaching: [], cleanupOutdatedCaches: true, clientsClaim: true, skipWaiting: true },
       devOptions: { enabled: false }
     })
   ],

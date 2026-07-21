@@ -21,6 +21,8 @@ function Layout({ children }: { children: React.ReactNode }) {
   const [more, setMore] = useState(false);
   const [onboardingDone, setOnboardingDone] = useState(() => localStorage.getItem('pinapeg.onboardingComplete') === 'yes');
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [installDismissed, setInstallDismissed] = useState(false);
   const location = useLocation();
   const nav = useNavigate();
   const welcomePaths = new Set(['/', '/welcome', '/signin', '/signup']);
@@ -50,6 +52,31 @@ function Layout({ children }: { children: React.ReactNode }) {
     setMore(false);
     nav('/welcome', { replace: true });
   };
+
+  const handleInstallClick = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    if (choice?.outcome === 'accepted') setInstallPrompt(null);
+  };
+
+  useEffect(() => {
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+      setTimeout(() => {
+        splash.style.opacity = '0';
+        splash.style.visibility = 'hidden';
+        setTimeout(() => splash.remove(), 500);
+      }, 400);
+    }
+
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+  }, []);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -141,7 +168,24 @@ function Layout({ children }: { children: React.ReactNode }) {
         )}
         {appChromeVisible && <div className="date-stamp">{new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date())}</div>}
       </header>
-      <main key={location.pathname}>{children}</main>
+      <main key={location.pathname}>
+        {installPrompt && !installDismissed && (
+          <div className="pwa-install-banner">
+            <div className="pwa-install-info">
+              <Sparkles size={20} className="pwa-icon" />
+              <div>
+                <strong>Install Pinapeg Companion App</strong>
+                <p>Fast voice capture & instant offline access from your home screen.</p>
+              </div>
+            </div>
+            <div className="pwa-install-actions">
+              <button type="button" className="cta-animated" onClick={handleInstallClick}>Install App</button>
+              <button type="button" className="text-link" onClick={() => setInstallDismissed(true)}>Dismiss</button>
+            </div>
+          </div>
+        )}
+        {children}
+      </main>
       {appChromeVisible && <MobileNav onNavigate={() => { setMenu(false); setMore(false); }} />}
       {appChromeVisible && <DailyEssencePopup pathname={location.pathname} />}
     </div>
@@ -729,7 +773,9 @@ function Schedule() {
           ))}
         </div>
       ) : (
-        <Empty icon={<CalendarDays />} title="Nothing scheduled for this day." copy="Select another date or capture a new deadline or event." action="Capture item" to="/capture" />
+        <div className="schedule-empty-flushed">
+          <Empty icon={<CalendarDays />} title="Nothing scheduled for this day." copy="Select another date or capture a new deadline or event." action="Capture item" to="/capture" />
+        </div>
       )}
     </section>
   );
@@ -749,7 +795,7 @@ function Thoughts() {
     <section className="page">
       <div className="page-heading">
         <div><p className="eyebrow">The things still taking shape</p><h1>Open thoughts</h1></div>
-        <button className="icon-button"><Search /></button>
+        <button className="icon-button search-inline" aria-label="Search"><Search /></button>
       </div>
       <div className="segmented">
         <button className={filter === 'open' ? 'active' : ''} onClick={() => setFilter('open')}>Open</button>
@@ -902,6 +948,7 @@ function AccountPage() {
   const [profileMode, setProfileMode] = useState('');
   const [profileTimezone, setProfileTimezone] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
+  const [pushGranted, setPushGranted] = useState(() => typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted');
   const [profileEditing, setProfileEditing] = useState(false);
   const focusChoices = ['Open capture', 'Scholarships', 'Research', 'Schedule'] as const;
   const modeChoices = ['Fast capture', 'Deep work', 'Weekly review'] as const;
@@ -1100,8 +1147,9 @@ function AccountPage() {
               </div>
               <div className="integration-card-actions">
                 <button
-                  className="connect-action"
+                  className={pushGranted ? 'connect-action connected' : 'connect-action'}
                   type="button"
+                  disabled={pushGranted}
                   onClick={async () => {
                     if (!('Notification' in window)) {
                       setMessage('Notifications are not supported in this browser.');
@@ -1109,13 +1157,14 @@ function AccountPage() {
                     }
                     const permission = await Notification.requestPermission();
                     if (permission === 'granted') {
+                      setPushGranted(true);
                       setMessage('Notifications enabled on this device.');
                     } else {
                       setMessage('Notification permission was not granted.');
                     }
                   }}
                 >
-                  Enable push reminders
+                  {pushGranted ? '✓ Push notifications active' : 'Enable push reminders'}
                 </button>
               </div>
             </div>
@@ -1324,24 +1373,24 @@ function Scholarships() {
       <div className="page-heading"><div><p className="eyebrow">Goals with a deadline</p><h1>Scholarships</h1></div></div>
       <div className="scholarship-cockpit">
         <article>
-          <span className="entry-kicker">Active opportunities</span>
+          <span className="entry-kicker">Active</span>
           <strong>{entries.length}</strong>
-          <p>Every captured scholarship stays here until you mark the plan complete.</p>
+          <p>Captured opportunities.</p>
         </article>
         <article>
-          <span className="entry-kicker">Deadline radar</span>
+          <span className="entry-kicker">Upcoming</span>
           <strong>{urgentDeadlines}</strong>
-          <p>Due in the next 30 days. These should surface in Schedule and weekly review.</p>
+          <p>Due in 30 days.</p>
         </article>
         <article>
-          <span className="entry-kicker">Application tasks</span>
+          <span className="entry-kicker">Tasks</span>
           <strong>{completeTasks}/{allTasks.length}</strong>
-          <p>Plans become small checkable steps instead of one intimidating deadline.</p>
+          <p>Steps completed.</p>
         </article>
         <article className="wide">
           <span className="entry-kicker">AI edge</span>
-          <h2>Fit radar, essay vault, and document checklist.</h2>
-          <p>As you capture more details, Pinapeg can compare the opportunity with your profile, preserve essay angles, and keep transcripts, referees, CV updates, and deadline reminders together.</p>
+          <h2>Profile fit · Essay vault · Deadline risk</h2>
+          <p>Pinapeg matches opportunities to your profile, preserves essay angles, and keeps CV updates and referee nudges together.</p>
           <div className="innovation-chips">
             <span>Fit notes</span>
             <span>Essay vault</span>
@@ -1353,8 +1402,8 @@ function Scholarships() {
       <GuidedCapturePanel
         icon={<CircleHelp size={18} />}
         kicker="Shelf shortcut"
-        title="Save an opportunity without boxing your thinking."
-        copy="Capture can classify scholarships naturally. This shortcut is only for direct entry when you already know it belongs here."
+        title="Save an opportunity directly."
+        copy="For when you already know it's a scholarship — skip the capture step."
         placeholder='e.g. Rhodes Scholarship deadline Oct 2'
         buttonLabel="Save to scholarships"
         buildText={value => `scholarship application: ${value}`}

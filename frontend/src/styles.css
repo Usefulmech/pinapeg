@@ -3774,12 +3774,12 @@ h2 {
 /* Responsive Calendar Grid & Container Polish */
 @media (max-width: 600px) {
   main {
-    padding: 20px 16px 40px;
+    padding: 20px 16px 140px;
   }
   .month-calendar-wrap {
     padding: 14px 10px;
     border-radius: 16px;
-    margin-bottom: 20px;
+    margin-bottom: 14px;
   }
   .month-grid-header {
     font-size: 10px;
@@ -3801,3 +3801,88 @@ h2 {
     height: 4px;
   }
 }
+
+/* PWA Install Banner */
+.pwa-install-banner {
+  margin: 0 0 20px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #fffdfa 0%, #fbf5f2 100%);
+  border: 1px solid #7d604b;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(125, 96, 75, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  animation: card-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pwa-install-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pwa-icon {
+  color: #7d604b;
+  flex-shrink: 0;
+}
+
+.pwa-install-info strong {
+  display: block;
+  font-size: 15px;
+  color: #332e29;
+  font-weight: 700;
+}
+
+.pwa-install-info p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #6f6760;
+  line-height: 1.4;
+}
+
+.pwa-install-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.schedule-empty-flushed {
+  margin-top: 4px;
+  margin-bottom: 12px;
+}
+
+.schedule-empty-flushed .empty-state {
+  padding: 24px 16px;
+}
+
+@media (max-width: 640px) {
+  .pwa-install-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .pwa-install-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* Search button inline with heading on mobile */
+.search-inline {
+  flex-shrink: 0;
+  align-self: center;
+  margin-top: 0;
+}
+
+@media (max-width: 640px) {
+  .page-heading {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  .search-inline {
+    margin-left: auto;
+  }
+}
+
