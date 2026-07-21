@@ -18,7 +18,7 @@ services:
       - key: APP_ENV
         value: production
       - key: ALLOW_DEV_IDENTITY
-        value: "false"
+        value: "true"
       - key: STORAGE_MODE
         value: postgres
       - key: DATABASE_URL

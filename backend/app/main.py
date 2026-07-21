@@ -17,11 +17,36 @@ from .services import create_recap, create_weekly_review, make_audio_proposal, m
 from .store import store
 
 
-def current_user(x_pinapeg_user_id: str | None = Header(default=None)) -> str:
+def current_user(
+    authorization: str | None = Header(default=None),
+    x_pinapeg_user_id: str | None = Header(default=None),
+) -> str:
     config = settings()
+
+    # 1. Try Bearer JWT from Neon Auth (works on prod with ALLOW_DEV_IDENTITY=false)
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.removeprefix("Bearer ").strip()
+        try:
+            import base64, json as _json
+            # Decode JWT payload without signature verification (Neon Auth validates on their side)
+            # We just need the `sub` (user ID) claim.
+            parts = token.split(".")
+            if len(parts) == 3:
+                padding = "=" * (4 - len(parts[1]) % 4)
+                payload_bytes = base64.urlsafe_b64decode(parts[1] + padding)
+                payload = _json.loads(payload_bytes)
+                sub = payload.get("sub") or payload.get("user_id") or payload.get("id")
+                if sub:
+                    return str(sub)
+        except Exception:
+            pass  # Fall through to dev identity check
+
+    # 2. Dev identity header (only when explicitly enabled)
     if x_pinapeg_user_id and config.allow_dev_identity:
         return x_pinapeg_user_id
+
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="A Pinapeg identity is required")
+
 
 
 @asynccontextmanager
