@@ -25,9 +25,9 @@ services:
         sync: false
 
       - key: CORS_ORIGINS
-        sync: false
+        value: "https://pinapeg.vercel.app"
       - key: FRONTEND_APP_URL
-        sync: false
+        value: "https://pinapeg.vercel.app"
       - key: OPENAI_API_KEY
         sync: false
       - key: EMBEDDING_MODEL
