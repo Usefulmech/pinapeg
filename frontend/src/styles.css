@@ -1220,6 +1220,10 @@ h2 {
   gap: 24px;
 }
 
+.paper-row > div {
+  min-width: 0;
+}
+
 .paper-row h3 {
   font-size: 22px;
   font-weight: 500;
@@ -2978,6 +2982,15 @@ h2 {
 @media (max-width: 760px) {
   body {
     min-width: 0;
+  }
+
+  main {
+    padding: 24px 16px 140px;
+    min-height: calc(100svh - 64px);
+  }
+
+  .capture h1 {
+    font-size: 38px;
   }
 
   header {
