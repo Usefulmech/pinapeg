@@ -108,8 +108,6 @@ class ConfigStatusOut(BaseModel):
     storage_mode: str
     database_configured: bool
     postgres_active: bool
-    redis_configured: bool
-    redis_reachable: bool = False
     openai_configured: bool
     google_oauth_configured: bool
     token_encryption_configured: bool

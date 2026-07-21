@@ -1,7 +1,6 @@
-"""Redis-ready prompt planning.
+"""SQLite-based prompt planning.
 
-This module does not enqueue jobs yet. It produces the queue payloads the Redis
-worker will later persist/deliver by user timezone.
+Produces the queue payloads delivered by user timezone.
 """
 
 from datetime import UTC, datetime, timedelta

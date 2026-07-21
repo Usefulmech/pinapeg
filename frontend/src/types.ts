@@ -84,8 +84,6 @@ export interface ConfigStatus {
   storage_mode: string;
   database_configured: boolean;
   postgres_active: boolean;
-  redis_configured: boolean;
-  redis_reachable: boolean;
   openai_configured: boolean;
   google_oauth_configured: boolean;
   token_encryption_configured: boolean;

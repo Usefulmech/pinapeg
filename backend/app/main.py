@@ -46,8 +46,6 @@ def config_status():
         storage_mode=config.storage_mode,
         database_configured=bool(config.database_url),
         postgres_active=config.storage_mode == "postgres" and bool(config.database_url),
-        redis_configured=False,
-        redis_reachable=False,
         openai_configured=bool(config.openai_api_key),
         google_oauth_configured=bool(config.google_client_id and config.google_client_secret and config.google_oauth_state_secret),
         token_encryption_configured=bool(config.token_encryption_key),

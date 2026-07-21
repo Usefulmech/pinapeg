@@ -8,7 +8,6 @@ services:
     branch: main
     autoDeploy: true
     buildCommand: python -m pip install --upgrade pip && python -m pip install -e .
-    preDeployCommand: python -m alembic upgrade head
     startCommand: python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     buildFilter:
@@ -24,18 +23,7 @@ services:
         value: postgres
       - key: DATABASE_URL
         sync: false
-      - key: REDIS_URL
-        sync: false
-      - key: REDIS_HOST
-        sync: false
-      - key: REDIS_PORT
-        sync: false
-      - key: REDIS_USERNAME
-        sync: false
-      - key: REDIS_PASSWORD
-        sync: false
-      - key: REDIS_SSL
-        value: "false"
+
       - key: CORS_ORIGINS
         sync: false
       - key: FRONTEND_APP_URL
@@ -63,5 +51,3 @@ services:
       - key: VAPID_PRIVATE_KEY
         sync: false
 
-previews:
-  generation: none

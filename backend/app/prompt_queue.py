@@ -1,8 +1,6 @@
 """Queue adapter boundary for prompt jobs.
 
-Local development can run without Redis. When ``REDIS_URL`` is configured, the
-worker uses a small Redis sorted-set queue so prompt jobs survive process
-restarts and can be claimed by a separate worker.
+Jobs are persisted in SQLite (queue.db) so prompt jobs survive process restarts.
 """
 
 from __future__ import annotations
@@ -120,8 +118,7 @@ class SqlitePromptQueue:
             envelopes.append(QueueEnvelope(user_id=user_id, job=PromptJobOut.model_validate(job_data)))
         return envelopes
 
-def redis_ping() -> bool:
-    return False
+
 
 def queue_backend_name() -> str:
     return "sqlite"
