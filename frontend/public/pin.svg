@@ -1,1 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="28" fill="#332e29"/><path d="M64 25c-16 0-29 13-29 29 0 21 29 49 29 49s29-28 29-49c0-16-13-29-29-29Zm0 41a12 12 0 1 1 0-24 12 12 0 0 1 0 24Z" fill="#fdf8f6"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="pinGradLarge" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#332e29" />
+      <stop offset="100%" stop-color="#1f1b18" />
+    </linearGradient>
+    <linearGradient id="accentGradLarge" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e07a5f" />
+      <stop offset="100%" stop-color="#d14926" />
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="112" height="112" rx="32" fill="url(#pinGradLarge)" />
+  <!-- Stylized Bookmark Peg + Terracotta Dot -->
+  <path d="M 44 36 L 84 36 C 90 36 94 40 94 46 L 94 92 L 69 74 L 44 92 Z" fill="none" stroke="#faf6f0" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="69" cy="54" r="8" fill="url(#accentGradLarge)" />
+</svg>

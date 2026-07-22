@@ -22,8 +22,10 @@ export default defineConfig({
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
-        categories: ['productivity', 'education', 'lifestyle'],
-        icons: [{ src: '/pin.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }]
+        icons: [
+          { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          { src: '/pin.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }
+        ]
       },
       devOptions: { enabled: false }
     })
