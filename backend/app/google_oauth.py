@@ -138,3 +138,58 @@ def gmail_message_count(access_token: str, max_results: int = 10) -> int:
     )
     response.raise_for_status()
     return len(response.json().get("messages", []))
+
+
+def fetch_calendar_events(access_token: str, max_results: int = 25) -> list[dict]:
+    """Fetch upcoming calendar events (next 30 days) and return structured event data."""
+    response = httpx.get(
+        "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+        headers={"Authorization": f"Bearer {access_token}"},
+        params={
+            "timeMin": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "timeMax": (datetime.now(UTC) + timedelta(days=30)).isoformat().replace("+00:00", "Z"),
+            "singleEvents": "true",
+            "orderBy": "startTime",
+            "maxResults": max_results,
+        },
+        timeout=15,
+    )
+    response.raise_for_status()
+    events = []
+    for item in response.json().get("items", []):
+        start = item.get("start", {})
+        start_dt = start.get("dateTime") or start.get("date") or ""
+        events.append({
+            "id": item.get("id", ""),
+            "summary": item.get("summary") or "Calendar event",
+            "description": item.get("description") or "",
+            "start": start_dt,
+        })
+    return events
+
+
+def push_calendar_events(access_token: str, events_to_push: list[dict]) -> list[tuple[str, str]]:
+    """Push new events to Google Calendar. Returns list of (entry_id, calendar_event_id)."""
+    created_ids = []
+    for event in events_to_push:
+        dt_str = event.get("scheduled_at")
+        if not dt_str:
+            continue
+        try:
+            end_dt = (datetime.fromisoformat(dt_str.replace("Z", "+00:00")) + timedelta(hours=1)).isoformat()
+            response = httpx.post(
+                "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+                headers={"Authorization": f"Bearer {access_token}"},
+                json={
+                    "summary": event.get("title") or "Pinapeg Event",
+                    "description": event.get("notes") or "",
+                    "start": {"dateTime": dt_str},
+                    "end": {"dateTime": end_dt}
+                },
+                timeout=15,
+            )
+            response.raise_for_status()
+            created_ids.append((str(event["id"]), response.json().get("id")))
+        except httpx.HTTPError:
+            continue
+    return created_ids

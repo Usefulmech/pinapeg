@@ -15,6 +15,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const body = await response.json().catch(() => null);
     throw new Error(body?.detail ?? body?.message ?? 'Something went wrong. Please try again.');
   }
+  if (response.status === 204 || response.headers.get('content-length') === '0') return undefined as unknown as T;
   return response.json() as Promise<T>;
 }
 
@@ -26,15 +27,16 @@ async function blobToBase64(blob: Blob): Promise<string> {
 }
 
 export const api = {
-  capture: (text: string) => request<Proposal>('/capture/text', { method: 'POST', body: JSON.stringify({ text, local_datetime: new Date().toISOString() }) }),
-  captureAudio: async (blob: Blob) => request<Proposal>('/capture/audio', {
+  capture: (text: string, userProfile?: Record<string, string>) => request<Proposal>('/capture/text', { method: 'POST', body: JSON.stringify({ text, local_datetime: new Date().toISOString(), user_profile: userProfile }) }),
+  captureAudio: async (blob: Blob, userProfile?: Record<string, string>) => request<Proposal>('/capture/audio', {
     method: 'POST',
-    body: JSON.stringify({ audio_base64: await blobToBase64(blob), mime_type: blob.type || 'audio/webm', local_datetime: new Date().toISOString() })
+    body: JSON.stringify({ audio_base64: await blobToBase64(blob), mime_type: blob.type || 'audio/webm', local_datetime: new Date().toISOString(), user_profile: userProfile })
   }),
   confirm: (proposalId: string) => request<Entry>(`/capture/${proposalId}/confirm`, { method: 'POST' }),
   discard: (proposalId: string) => request<void>(`/capture/${proposalId}/discard`, { method: 'POST' }),
   entries: (params = '') => request<Entry[]>(`/entries${params}`),
   updateEntry: (id: string, payload: Partial<Pick<Entry, 'title' | 'notes' | 'scheduled_at' | 'status' | 'metadata'>>) => request<Entry>(`/entries/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  deleteEntry: (id: string) => request<void>(`/entries/${id}`, { method: 'DELETE' }),
   children: (id: string) => request<Entry[]>(`/entries/${id}/children`),
   schedule: () => request<Entry[]>('/schedule'),
   updateStatus: (id: string, action: 'complete' | 'resolve' | 'reopen') => request<Entry>(`/entries/${id}/${action}`, { method: 'POST' }),

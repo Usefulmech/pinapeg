@@ -86,6 +86,15 @@ def build_prompt_plan(user_id: str, timezone: str = "Africa/Lagos") -> PromptPla
         priority="medium",
     ))
 
+    jobs.append(PromptJobOut(
+        kind="daily_checkin",
+        title="Daily Check-in",
+        message="Time to check in on Pinapeg: reflect on your day, log your habits, and organize your thoughts.",
+        route="/today",
+        scheduled_for=now.replace(hour=20, minute=0, second=0, microsecond=0) if now.hour < 20 else now + timedelta(days=1),
+        priority="medium",
+    ))
+
     days_until_monday = (7 - now.weekday()) % 7 or 7
     next_monday = (now + timedelta(days=days_until_monday)).replace(hour=8, minute=30, second=0, microsecond=0)
     jobs.append(PromptJobOut(

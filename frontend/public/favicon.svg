@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="pinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3a332d" />
+      <stop offset="100%" stop-color="#1f1b18" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e07a5f" />
+      <stop offset="100%" stop-color="#d14926" />
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#pinGrad)" />
+  <!-- Stylized Bookmark Peg + Dot -->
+  <path d="M 22 18 L 42 18 C 45 18 47 20 47 23 L 47 46 L 34.5 37 L 22 46 Z" fill="none" stroke="#faf6f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="34.5" cy="27" r="4" fill="url(#accentGrad)" />
+</svg>

@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from .papers import fetch_metadata
+from .url_scraper import fetch_url_metadata
 from .schemas import CaptureAudioRequest, CaptureTextRequest, EntryOut, ProposalOut, RecapOut, WeeklyReviewOut
 from .store import ProposalRecord, store
 from .transcription import transcribe_audio
@@ -96,7 +97,7 @@ def _parse_datetime(text: str, now: datetime) -> datetime | None:
     return target
 
 
-def make_proposal(user_id: str, payload: CaptureTextRequest, extra_metadata: dict | None = None) -> ProposalOut:
+def make_proposal(user_id: str, payload: CaptureTextRequest, extra_metadata: dict | None = None, user_profile: dict | None = None) -> ProposalOut:
     text = payload.text.strip()
     memories = store.related(user_id, text)
     lowered = text.lower()
@@ -104,7 +105,7 @@ def make_proposal(user_id: str, payload: CaptureTextRequest, extra_metadata: dic
     resolved = next((entry for entry in memories if entry.status == "open"), None) if any(token in lowered for token in ("sorted", "resolved", "handled", "done with", "finished")) else None
     scheduled_at = _parse_datetime(text, payload.local_datetime)
     specialist_intent = None
-    if re.search(r"https?://|doi\.org|arxiv\.org", lowered) or any(token in lowered for token in ("research paper", "track paper", "paper to read")):
+    if re.search(r"https?://|doi\.org|arxiv\.org", lowered) or any(token in lowered for token in ("research paper", "track paper", "paper to read", "this paper", "paper on", "paper about", "new paper", "paper:")):
         specialist_intent = "TRACK_PAPER"
     elif any(token in lowered for token in ("scholarship", "fellowship", "grant application")):
         specialist_intent = "TRACK_SCHOLARSHIP"
@@ -120,6 +121,8 @@ def make_proposal(user_id: str, payload: CaptureTextRequest, extra_metadata: dic
         intent, answer_value = "OPEN_THOUGHT", None
     elif scheduled_at:
         intent, answer_value = "CREATE", None
+    elif scheduled_at and any(token in lowered for token in ("class", "lecture", "meeting", "appointment", "session", "seminar", "interview", "exam", "test", "presentation", "dinner", "lunch", "breakfast", "event", "have ")):
+        intent, answer_value = "CREATE", None
     elif any(token in lowered for token in ("remind", "todo", "to-do", "need to", "should send", "call ")):
         intent, answer_value = "REMINDER_ONLY", None
     else:
@@ -128,16 +131,25 @@ def make_proposal(user_id: str, payload: CaptureTextRequest, extra_metadata: dic
     if intent == "TRACK_PAPER":
         metadata = fetch_metadata(text)
     elif intent == "TRACK_SCHOLARSHIP":
+        url_meta = fetch_url_metadata(text)
         metadata = {"deadline": scheduled_at.isoformat()} if scheduled_at else {}
+        if url_meta.get("title"):
+            metadata["title"] = url_meta["title"]
+        if url_meta.get("description"):
+            metadata["description"] = url_meta["description"]
+        if url_meta.get("url"):
+            metadata["url"] = url_meta["url"]
     else:
         metadata = {}
     if extra_metadata:
         metadata = {**metadata, **extra_metadata}
+    if user_profile:
+        metadata["_user_profile"] = user_profile
 
     title = metadata.get("title") or _guided_title(text, intent) or _title(text)
-    notes = metadata.get("abstract") or None
+    notes = metadata.get("description") or metadata.get("abstract") or None
     if intent == "TRACK_SCHOLARSHIP" and scheduled_at:
-        notes = f"Deadline: {scheduled_at.strftime('%b %d, %Y')}"
+        notes = f"Deadline: {scheduled_at.strftime('%b %d, %Y')}" + (f" — {notes}" if notes else "")
 
     record = store.save_proposal(
         ProposalRecord(
@@ -156,8 +168,6 @@ def make_proposal(user_id: str, payload: CaptureTextRequest, extra_metadata: dic
     note = None
     if resolved:
         note = f"This sounds like an update to your open thought: {resolved.title}"
-    elif memories:
-        note = f"This connects with something you captured on {memories[0].created_at.strftime('%b %d')}."
     return ProposalOut(id=record.id, intent=intent, title=record.title, notes=record.notes, datetime=record.scheduled_at, related_entries=memories, resolves_entry_id=record.resolves_entry_id, memory_note=note, answer=record.answer)
 
 
@@ -171,7 +181,7 @@ def make_audio_proposal(user_id: str, payload: CaptureAudioRequest) -> ProposalO
         transcript = None
 
     if transcript:
-        return make_proposal(user_id, CaptureTextRequest(text=transcript, local_datetime=payload.local_datetime, timezone=payload.timezone), extra_metadata={**metadata, "transcript": transcript})
+        return make_proposal(user_id, CaptureTextRequest(text=transcript, local_datetime=payload.local_datetime, timezone=payload.timezone), extra_metadata={**metadata, "transcript": transcript}, user_profile=payload.user_profile if hasattr(payload, "user_profile") else None)
 
     record = store.save_proposal(
         ProposalRecord(

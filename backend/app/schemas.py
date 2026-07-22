@@ -13,6 +13,7 @@ class CaptureTextRequest(BaseModel):
     text: str = Field(min_length=1, max_length=10_000)
     local_datetime: DateTime
     timezone: str = "Africa/Lagos"
+    user_profile: dict | None = None
 
 
 class CaptureAudioRequest(BaseModel):
@@ -20,6 +21,7 @@ class CaptureAudioRequest(BaseModel):
     local_datetime: DateTime
     timezone: str = "Africa/Lagos"
     mime_type: str = "audio/webm"
+    user_profile: dict | None = None
 
 
 class EntryOut(BaseModel):
@@ -89,7 +91,7 @@ class DailyEssenceOut(BaseModel):
 
 
 class PromptJobOut(BaseModel):
-    kind: Literal["deadline", "habit", "stale_thought", "daily_essence", "weekly_review"]
+    kind: Literal["deadline", "habit", "stale_thought", "daily_essence", "daily_checkin", "weekly_review"]
     title: str
     message: str
     route: str

@@ -76,13 +76,14 @@ export async function getCurrentAccount(): Promise<LocalAccount> {
   try {
     const user = sessionUser(await auth?.getSession?.());
     if (user?.id || user?.email) {
-      updateStoredProfile({
-        name: user.name || user.displayName || user.email || getStoredProfile().name,
-        email: user.email,
-      });
+      const existing = getStoredProfile();
+      // Preserve a custom name the user has set; only fall back to Google name if none stored.
+      const freshName = user.name || user.displayName || user.email || existing.name;
+      const keptName = (existing.name && existing.name !== 'You') ? existing.name : freshName;
+      updateStoredProfile({ name: keptName, email: user.email });
       return {
         id: user.id || user.email || demoUserId,
-        name: user.name || user.displayName || user.email || 'You',
+        name: keptName,
         email: user.email,
       };
     }

@@ -38,11 +38,15 @@ def preview_prompt_plan(user_id: str, timezone: str = "Africa/Lagos") -> dict:
     return plan.model_dump(mode="json")
 
 
+import time
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Pinapeg prompt worker")
-    parser.add_argument("command", choices=["preview", "enqueue", "run-once"], nargs="?", default="preview")
+    parser.add_argument("command", choices=["preview", "enqueue", "run-once", "loop"], nargs="?", default="preview")
     parser.add_argument("--user-id", default="local-demo-user")
     parser.add_argument("--timezone", default="Africa/Lagos")
+    parser.add_argument("--interval", type=int, default=60, help="Interval in seconds for loop mode")
     args = parser.parse_args()
 
     if args.command == "preview":
@@ -51,6 +55,18 @@ def main() -> None:
 
     if args.command == "enqueue":
         print(json.dumps({"queued": enqueue_prompt_plan(args.user_id, args.timezone), "backend": queue_backend_name()}, indent=2))
+        return
+
+    if args.command == "loop":
+        logger.info("Starting worker loop mode (polling every %ss)...", args.interval)
+        try:
+            while True:
+                outcomes = run_due_prompt_jobs(args.user_id, args.timezone)
+                if outcomes:
+                    logger.info("Processed %s job(s): %s", len(outcomes), outcomes)
+                time.sleep(args.interval)
+        except KeyboardInterrupt:
+            logger.info("Worker loop stopped.")
         return
 
     outcomes = run_due_prompt_jobs(args.user_id, args.timezone)

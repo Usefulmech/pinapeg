@@ -24,6 +24,15 @@ def handle_prompt_job(user_id: str, job: PromptJobOut) -> dict[str, Any]:
             "message": essence.message,
         }
 
+    if job.kind == "daily_checkin":
+        return {
+            "kind": job.kind,
+            "handled_at": datetime.now(UTC).isoformat(),
+            "route": job.route,
+            "title": "Daily Check-in",
+            "message": "Time for your daily reflection. Open Pinapeg to track your progress and clear your mind.",
+        }
+
     if job.kind == "weekly_review":
         review = create_weekly_review(user_id, "week")
         return {

@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from .config import settings
 from .essence import create_daily_essence
-from .google_oauth import PROVIDERS, authorization_url, calendar_event_count, decode_state, exchange_code, gmail_message_count, refresh_access_token, userinfo
+from .google_oauth import PROVIDERS, authorization_url, calendar_event_count, decode_state, exchange_code, fetch_calendar_events, gmail_message_count, push_calendar_events, refresh_access_token, userinfo
 from .paper_intelligence import answer_paper_question, enrich_paper
 from .prompting import build_prompt_plan
 from .schemas import CaptureAudioRequest, CaptureTextRequest, ConfigStatusOut, DailyEssenceOut, DecompositionOut, EntryOut, EntryUpdateRequest, HabitAnalyticsOut, HabitLogOut, IntegrationConnectOut, IntegrationSyncOut, IntegrationsOut, MeOut, OAuthConnectionOut, PaperEnrichmentOut, PaperQuestionOut, PaperQuestionRequest, PromptPlanOut, ProposalOut, RecapOut, RecapRequest, WeeklyReviewOut
@@ -136,23 +136,42 @@ def google_sync(provider: Literal["calendar", "gmail"], user_id: str = Depends(c
     refresh_token, _ = credentials
     try:
         access_token = refresh_access_token(refresh_token)
-        scanned = calendar_event_count(access_token) if provider == "calendar" else gmail_message_count(access_token)
+        if provider == "calendar":
+            events = fetch_calendar_events(access_token)
+            scanned = len(events)
+            created, updated = store.import_calendar_events(user_id, events)
+            local_events = store.list_entries(user_id, entry_type="event")
+            to_push = [e.model_dump() for e in local_events if e.status == "open" and not e.metadata.get("calendar_event_id") and e.scheduled_at]
+            pushed_ids = push_calendar_events(access_token, to_push)
+            for entry_id, gcal_id in pushed_ids:
+                store.update_entry(user_id, UUID(entry_id), {"metadata": {"calendar_event_id": gcal_id}})
+            
+            imported_count = created + updated
+            message = f"Synced {scanned} upcoming events — {created} new, {updated} updated in your schedule. Pushed {len(pushed_ids)} up to calendar."
+        else:
+            scanned = gmail_message_count(access_token)
+            imported_count = 0
+            message = f"Scanned {scanned} recent Gmail messages. Deadline extraction coming soon."
         connection = store.record_oauth_sync(user_id, storage_key)
     except (RuntimeError, KeyError, httpx.HTTPError) as exc:
         store.record_oauth_sync(user_id, storage_key, str(exc))
-        raise HTTPException(status_code=400, detail=f"Google {provider} sync failed: {exc}") from exc
-    label = "upcoming calendar events" if provider == "calendar" else "recent Gmail messages"
+        err_str = str(exc)
+        if "403" in err_str or "401" in err_str or "Forbidden" in err_str or "Unauthorized" in err_str:
+            detail = f"Google {provider} access was denied. Your token may have expired — please reconnect your Google account from Settings."
+        else:
+            detail = f"Google {provider} sync failed: {exc}"
+        raise HTTPException(status_code=400, detail=detail) from exc
     return IntegrationSyncOut(
         provider=provider,
         connected=True,
         scanned_count=scanned,
-        imported_count=0,
-        message=f"Sync check scanned {scanned} {label}. Auto-import review comes next.",
+        imported_count=imported_count,
+        message=message,
         last_synced_at=connection.last_synced_at if connection else None,
     )
 
 @app.post('/v1/capture/text', response_model=ProposalOut)
-def capture_text(payload: CaptureTextRequest, user_id: str = Depends(current_user)): return make_proposal(user_id, payload)
+def capture_text(payload: CaptureTextRequest, user_id: str = Depends(current_user)): return make_proposal(user_id, payload, user_profile=payload.user_profile)
 
 @app.post('/v1/capture/audio', response_model=ProposalOut)
 def capture_audio(payload: CaptureAudioRequest, user_id: str = Depends(current_user)):
@@ -177,6 +196,9 @@ def entry_children(entry_id: UUID, user_id: str = Depends(current_user)): return
 
 @app.get('/v1/schedule', response_model=list[EntryOut])
 def schedule(user_id: str = Depends(current_user)): return [entry for entry in store.list_entries(user_id) if entry.scheduled_at]
+
+@app.delete('/v1/entries/{entry_id}', status_code=204)
+def delete_entry(entry_id: UUID, user_id: str = Depends(current_user)): store.delete_entry(user_id, entry_id)
 
 @app.post('/v1/entries/{entry_id}/complete', response_model=EntryOut)
 def complete(entry_id: UUID, user_id: str = Depends(current_user)): return store.transition(user_id, entry_id, 'done')

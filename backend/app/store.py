@@ -146,6 +146,9 @@ class MemoryStore:
                 return changed
         raise KeyError("entry")
 
+    def delete_entry(self, user_id: str, entry_id: UUID) -> None:
+        self.entries[user_id] = [e for e in self.entries.get(user_id, []) if e.id != entry_id]
+
     def log_habit(self, user_id: str, entry_id: UUID) -> dict[str, str | UUID | bool]:
         habit = next((item for item in self.entries.get(user_id, []) if item.id == entry_id and item.type == "habit"), None)
         if habit is None:
@@ -223,6 +226,50 @@ class MemoryStore:
         })
         self.oauth_connections[(user_id, provider)] = updated
         return updated
+
+    def import_calendar_events(self, user_id: str, events: list[dict]) -> tuple[int, int]:
+        """Import/update calendar events as entries. Returns (created, updated)."""
+        created = updated = 0
+        user_entries = self.entries.get(user_id, [])
+        id_to_index = {
+            str(e.metadata.get("calendar_event_id")): i
+            for i, e in enumerate(user_entries)
+            if e.metadata.get("calendar_event_id")
+        }
+        for event in events:
+            event_id = event.get("id", "")
+            title = event.get("summary") or "Calendar event"
+            notes = event.get("description") or None
+            start_str = event.get("start", "")
+            scheduled_at = None
+            if start_str:
+                for fmt in (start_str, start_str + "T00:00:00+00:00"):
+                    try:
+                        scheduled_at = datetime.fromisoformat(fmt.replace("Z", "+00:00"))
+                        if scheduled_at and scheduled_at.tzinfo is None:
+                            scheduled_at = scheduled_at.replace(tzinfo=UTC)
+                        break
+                    except ValueError:
+                        continue
+            if event_id in id_to_index:
+                idx = id_to_index[event_id]
+                entry = user_entries[idx]
+                self.entries[user_id][idx] = entry.model_copy(update={"title": title, "notes": notes, "scheduled_at": scheduled_at})
+                updated += 1
+            else:
+                self.entries.setdefault(user_id, []).append(EntryOut(
+                    id=uuid4(),
+                    type="event",
+                    title=title,
+                    notes=notes,
+                    scheduled_at=scheduled_at,
+                    status="open",
+                    created_at=datetime.now(UTC),
+                    calendar_sync_state="synced",
+                    metadata={"calendar_event_id": event_id, "source": "google_calendar"},
+                ))
+                created += 1
+        return created, updated
 
 
 class PostgresStore:
@@ -412,6 +459,16 @@ class PostgresStore:
             session.refresh(entry)
             return self._out(entry)
 
+    def delete_entry(self, user_id: str, entry_id: UUID) -> None:
+        with next(sessions()) as session:
+            user = self._user(session, user_id)
+            if user is None:
+                return
+            entry = session.scalar(select(EntryModel).where(EntryModel.id == entry_id, EntryModel.user_id == user.id))
+            if entry is not None:
+                session.delete(entry)
+                session.commit()
+
     def log_habit(self, user_id: str, entry_id: UUID) -> dict[str, str | UUID | bool]:
         with next(sessions()) as session:
             user = self._user(session, user_id)
@@ -576,6 +633,56 @@ class PostgresStore:
             session.commit()
             session.refresh(connection)
             return self._oauth_out(connection)
+
+    def import_calendar_events(self, user_id: str, events: list[dict]) -> tuple[int, int]:
+        """Import/update calendar events as entries. Returns (created, updated)."""
+        created = updated = 0
+        with next(sessions()) as session:
+            user = self._user(session, user_id, create=True)
+            if user is None:
+                return 0, 0
+            for event in events:
+                event_id = event.get("id", "")
+                title = event.get("summary") or "Calendar event"
+                notes = event.get("description") or None
+                start_str = event.get("start", "")
+                scheduled_at = None
+                if start_str:
+                    for fmt in (start_str, start_str + "T00:00:00+00:00"):
+                        try:
+                            scheduled_at = datetime.fromisoformat(fmt.replace("Z", "+00:00"))
+                            if scheduled_at and scheduled_at.tzinfo is None:
+                                scheduled_at = scheduled_at.replace(tzinfo=UTC)
+                            break
+                        except ValueError:
+                            continue
+                existing = session.scalar(
+                    select(EntryModel).where(
+                        EntryModel.user_id == user.id,
+                        EntryModel.metadata_json.op("->>")("calendar_event_id") == event_id,
+                    )
+                )
+                if existing is not None:
+                    existing.title = title
+                    existing.notes = notes
+                    existing.scheduled_at = scheduled_at
+                    updated += 1
+                else:
+                    entry = EntryModel(
+                        user_id=user.id,
+                        type="event",
+                        intent="CREATE",
+                        title=title,
+                        notes=notes,
+                        scheduled_at=scheduled_at,
+                        status="open",
+                        metadata_json={"calendar_event_id": event_id, "source": "google_calendar"},
+                        calendar_sync_state="synced",
+                    )
+                    session.add(entry)
+                    created += 1
+            session.commit()
+        return created, updated
 
 
 store = PostgresStore() if settings().storage_mode.lower() == "postgres" else MemoryStore()
