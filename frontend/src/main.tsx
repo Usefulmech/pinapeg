@@ -248,7 +248,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       <div className="app-shell">
         <header>
           <div className="wordmark">
-            pinapeg<span>.</span>
+            Pinapeg<span>.</span>
           </div>
         </header>
       </div>
@@ -266,7 +266,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             setMore(false);
           }}
         >
-          pinapeg<span>.</span>
+          Pinapeg<span>.</span>
         </Link>
         {appChromeVisible && (
           <button
@@ -583,7 +583,7 @@ function Welcome() {
         >
           <div className="sheet-fold" aria-hidden="true" />
           <div className="sheet-topline">
-            <span>pinapeg / your personal companion</span>
+            <span>Pinapeg / your personal companion</span>
             <span>
               {String(revealStep + 1).padStart(2, "0")} ?{" "}
               {String(revealItems.length).padStart(2, "0")}
