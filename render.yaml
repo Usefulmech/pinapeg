@@ -5,15 +5,10 @@ services:
     rootDir: backend
     plan: free
     region: oregon
-    branch: main
     autoDeploy: true
     buildCommand: python -m pip install --upgrade pip && python -m pip install -e .
     startCommand: python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
-    buildFilter:
-      paths:
-        - backend/**
-        - render.yaml
     envVars:
       - key: APP_ENV
         value: production
