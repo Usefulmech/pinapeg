@@ -9,12 +9,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from .config import settings
 from .essence import create_daily_essence
-from .google_oauth import PROVIDERS, authorization_url, calendar_event_count, decode_state, exchange_code, fetch_calendar_events, gmail_message_count, push_calendar_events, refresh_access_token, userinfo
+from .google_oauth import PROVIDERS, authorization_url, calendar_event_count, decode_state, exchange_code, fetch_calendar_events, fetch_gmail_messages, gmail_message_count, push_calendar_events, refresh_access_token, userinfo
 from .paper_intelligence import answer_paper_question, enrich_paper
 from .prompting import build_prompt_plan
 from .schemas import CaptureAudioRequest, CaptureTextRequest, ConfigStatusOut, DailyEssenceOut, DecompositionOut, EntryOut, EntryUpdateRequest, HabitAnalyticsOut, HabitLogOut, IntegrationConnectOut, IntegrationSyncOut, IntegrationsOut, MeOut, OAuthConnectionOut, PaperEnrichmentOut, PaperQuestionOut, PaperQuestionRequest, PromptPlanOut, ProposalOut, RecapOut, RecapRequest, WeeklyReviewOut
 from .services import create_recap, create_weekly_review, make_audio_proposal, make_proposal
 from .store import store
+from .worker import run_due_prompt_jobs
+import asyncio
+
 
 
 def current_user(
@@ -49,12 +52,25 @@ def current_user(
 
 
 
+async def _background_worker_loop():
+    while True:
+        try:
+            run_due_prompt_jobs("prod_user")
+        except Exception:
+            pass
+        await asyncio.sleep(60)
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    yield
+    worker_task = asyncio.create_task(_background_worker_loop())
+    try:
+        yield
+    finally:
+        worker_task.cancel()
 
 
 app = FastAPI(title="Pinapeg API", version="0.1.0", lifespan=lifespan)
+
 app.add_middleware(CORSMiddleware, allow_origins=settings().cors_origin_list, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 @app.exception_handler(KeyError)
@@ -149,10 +165,13 @@ def google_sync(provider: Literal["calendar", "gmail"], user_id: str = Depends(c
             imported_count = created + updated
             message = f"Synced {scanned} upcoming events — {created} new, {updated} updated in your schedule. Pushed {len(pushed_ids)} up to calendar."
         else:
-            scanned = gmail_message_count(access_token)
-            imported_count = 0
-            message = f"Scanned {scanned} recent Gmail messages. Deadline extraction coming soon."
+            messages = fetch_gmail_messages(access_token)
+            scanned = len(messages)
+            created, updated = store.import_gmail_messages(user_id, messages)
+            imported_count = created + updated
+            message = f"Scanned {scanned} Gmail messages — imported {created} new tasks/deadlines into your workspace."
         connection = store.record_oauth_sync(user_id, storage_key)
+
     except (RuntimeError, KeyError, httpx.HTTPError) as exc:
         store.record_oauth_sync(user_id, storage_key, str(exc))
         err_str = str(exc)
@@ -253,8 +272,14 @@ def daily_essence(user_id: str = Depends(current_user)): return create_daily_ess
 @app.get('/v1/prompt-plan', response_model=PromptPlanOut)
 def prompt_plan(user_id: str = Depends(current_user), timezone: str = "Africa/Lagos"): return build_prompt_plan(user_id, timezone)
 
+@app.post('/v1/worker/run-due')
+def trigger_worker(user_id: str = Depends(current_user), timezone: str = "Africa/Lagos"):
+    outcomes = run_due_prompt_jobs(user_id, timezone)
+    return {"status": "ok", "handled_count": len(outcomes), "outcomes": outcomes}
+
 @app.get('/v1/analytics/habits', response_model=HabitAnalyticsOut)
 def habit_analytics(user_id: str = Depends(current_user)): return HabitAnalyticsOut(habits=store.habit_analytics(user_id))
 
 @app.get('/v1/analytics/cv-timeline', response_model=list[EntryOut])
 def cv_timeline(user_id: str = Depends(current_user)): return store.cv_timeline(user_id)
+

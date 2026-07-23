@@ -133,6 +133,27 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
     const { hour, minute } = event.data as { hour: number; minute: number };
     scheduleAppCheckinNotification(hour, minute);
   }
+  if (event.data?.type === "SCHEDULE_EVENT_ALARM") {
+    const { title, scheduledAtMs, entryId } = event.data as { title: string; scheduledAtMs: number; entryId: string };
+    const alarmTimeMs = scheduledAtMs - 10 * 60 * 1000;
+    const delay = alarmTimeMs - Date.now();
+    if (delay > 0) {
+      setTimeout(async () => {
+        try {
+          await self.registration.showNotification(`⏰ Event in 10 mins: ${title}`, {
+            body: `${title} is starting in 10 minutes. Get ready!`,
+            tag: `alarm-10m-${entryId}`,
+            renotify: true,
+            silent: false,
+            vibrate: [300, 100, 300, 100, 500],
+          } as NotificationOptions);
+          await notifyClientsToPlaySound();
+        } catch {
+          // ignore
+        }
+      }, delay);
+    }
+  }
   if (event.data?.type === "TRIGGER_TEST_NOTIFICATION") {
     const { title, body } = event.data;
     self.registration.showNotification(title || "Pinapeg Test Nudge", {
@@ -143,6 +164,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
       vibrate: [200, 100, 200],
     } as NotificationOptions).then(() => notifyClientsToPlaySound());
   }
+
 });
 
 self.addEventListener("notificationclick", (event: NotificationEvent) => {

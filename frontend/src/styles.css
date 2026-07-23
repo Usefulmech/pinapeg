@@ -5548,3 +5548,91 @@ main {
   }
 }
 
+/* Action Menu Dropdown Rules */
+.agenda-item,
+.history-list article {
+  position: relative;
+}
+
+.action-menu-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto !important;
+  align-self: flex-start;
+  z-index: 1;
+}
+
+.action-menu-wrap.open {
+  z-index: 1000;
+}
+
+.action-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: var(--paper, #fffdfa);
+  border: 1px solid var(--line, #d8d0ca);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(51, 46, 41, 0.16);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 130px;
+  z-index: 9999;
+}
+
+.action-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 13px;
+  border: none;
+  background: transparent;
+  color: var(--ink, #1c1b1a);
+  border-radius: 6px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.action-menu button:hover {
+  background: var(--paper-grey, #f3efec);
+}
+
+.action-menu button.action-menu-danger {
+  color: #dc2626;
+}
+
+.action-menu button.action-menu-danger:hover {
+  background: #fef2f2;
+}
+
+.agenda-items,
+.agenda-day,
+.agenda-week,
+.history-list article {
+  overflow: visible !important;
+}
+
+@media (max-width: 640px) {
+  .agenda-item,
+  .history-list article {
+    position: relative !important;
+    padding-right: 40px !important;
+  }
+  .agenda-item .action-menu-wrap,
+  .history-list article .action-menu-wrap {
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    margin-left: 0 !important;
+  }
+}
+
+
+

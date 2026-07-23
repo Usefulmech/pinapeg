@@ -24,6 +24,18 @@ def handle_prompt_job(user_id: str, job: PromptJobOut) -> dict[str, Any]:
             "message": essence.message,
         }
 
+    if job.kind == "alarm_10m":
+        return {
+            "kind": job.kind,
+            "handled_at": datetime.now(UTC).isoformat(),
+            "route": job.route,
+            "title": job.title,
+            "message": job.message,
+            "play_sound": True,
+            "related_entry_id": str(job.related_entry.id) if job.related_entry else None,
+        }
+
+
     if job.kind == "daily_checkin":
         return {
             "kind": job.kind,

@@ -271,6 +271,52 @@ class MemoryStore:
                 created += 1
         return created, updated
 
+    def import_gmail_messages(self, user_id: str, messages: list[dict]) -> tuple[int, int]:
+        created, updated = 0, 0
+        user_entries = self.entries.get(user_id, [])
+        id_to_index = {
+            e.metadata.get("gmail_message_id"): i
+            for i, e in enumerate(user_entries)
+            if e.metadata and e.metadata.get("gmail_message_id")
+        }
+        for msg in messages:
+            msg_id = msg.get("id", "")
+            if not msg_id:
+                continue
+            title = msg.get("subject") or "Gmail Task"
+            from_sender = msg.get("from") or ""
+            snippet = msg.get("snippet") or ""
+            notes = f"From: {from_sender}\n{snippet}".strip()
+            scheduled_at = None
+            date_header = msg.get("date")
+            if date_header:
+                try:
+                    from email.utils import parsedate_to_datetime
+                    scheduled_at = parsedate_to_datetime(date_header)
+                    if scheduled_at and scheduled_at.tzinfo is None:
+                        scheduled_at = scheduled_at.replace(tzinfo=UTC)
+                except Exception:
+                    scheduled_at = datetime.now(UTC)
+
+            if msg_id in id_to_index:
+                idx = id_to_index[msg_id]
+                entry = user_entries[idx]
+                self.entries[user_id][idx] = entry.model_copy(update={"title": title, "notes": notes})
+                updated += 1
+            else:
+                self.entries.setdefault(user_id, []).append(EntryOut(
+                    id=uuid4(),
+                    type="task",
+                    title=title,
+                    notes=notes,
+                    scheduled_at=scheduled_at,
+                    status="open",
+                    created_at=datetime.now(UTC),
+                    metadata={"gmail_message_id": msg_id, "source": "gmail", "from": from_sender},
+                ))
+                created += 1
+        return created, updated
+
 
 class PostgresStore:
     """PostgreSQL-backed entry store; proposals remain short-lived until confirmed."""
@@ -678,6 +724,57 @@ class PostgresStore:
                         status="open",
                         metadata_json={"calendar_event_id": event_id, "source": "google_calendar"},
                         calendar_sync_state="synced",
+                    )
+                    session.add(entry)
+                    created += 1
+            session.commit()
+        return created, updated
+
+    def import_gmail_messages(self, user_id: str, messages: list[dict]) -> tuple[int, int]:
+        created, updated = 0, 0
+        with next(sessions()) as session:
+            user = self._user(session, user_id, create=True)
+            if user is None:
+                return 0, 0
+            for msg in messages:
+                msg_id = msg.get("id", "")
+                if not msg_id:
+                    continue
+                title = msg.get("subject") or "Gmail Task"
+                from_sender = msg.get("from") or ""
+                snippet = msg.get("snippet") or ""
+                notes = f"From: {from_sender}\n{snippet}".strip()
+                scheduled_at = None
+                date_header = msg.get("date")
+                if date_header:
+                    try:
+                        from email.utils import parsedate_to_datetime
+                        scheduled_at = parsedate_to_datetime(date_header)
+                        if scheduled_at and scheduled_at.tzinfo is None:
+                            scheduled_at = scheduled_at.replace(tzinfo=UTC)
+                    except Exception:
+                        scheduled_at = datetime.now(UTC)
+
+                existing = session.scalar(
+                    select(EntryModel).where(
+                        EntryModel.user_id == user.id,
+                        EntryModel.metadata_json.op("->>")("gmail_message_id") == msg_id,
+                    )
+                )
+                if existing is not None:
+                    existing.title = title
+                    existing.notes = notes
+                    updated += 1
+                else:
+                    entry = EntryModel(
+                        user_id=user.id,
+                        type="task",
+                        intent="CREATE",
+                        title=title,
+                        notes=notes,
+                        scheduled_at=scheduled_at,
+                        status="open",
+                        metadata_json={"gmail_message_id": msg_id, "source": "gmail", "from": from_sender},
                     )
                     session.add(entry)
                     created += 1

@@ -57,34 +57,48 @@ def _guided_title(text: str, intent: str) -> str | None:
     return None
 
 
+def _make_aware(dt: datetime | None) -> datetime | None:
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=UTC)
+    return dt
+
+
 def _parse_datetime(text: str, now: datetime) -> datetime | None:
     """Deliberately conservative fallback parser. Production delegates to validated AI structured output."""
     lowered = text.lower()
+    hour_match = re.search(r"\b(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b", lowered)
+    parsed_hour, parsed_minute = 23, 59
+    has_time = False
+    if hour_match:
+        h, m, meridiem = int(hour_match.group(1)), int(hour_match.group(2) or 0), hour_match.group(3)
+        if meridiem == "pm" and h < 12:
+            h += 12
+        if meridiem == "am" and h == 12:
+            h = 0
+        if 0 <= h <= 23 and 0 <= m <= 59:
+            parsed_hour, parsed_minute = h, m
+            has_time = True
+
     month_match = re.search(r"\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+(\d{1,2})\b", lowered)
     if month_match:
         month = MONTHS[month_match.group(1).rstrip(".")]
         day = int(month_match.group(2))
         try:
-            target = now.replace(month=month, day=day, hour=23, minute=59, second=0, microsecond=0)
-            if target < now:
+            target = now.replace(month=month, day=day, hour=parsed_hour, minute=parsed_minute, second=0, microsecond=0)
+            if target < now and not has_time:
                 target = target.replace(year=target.year + 1)
             return target
         except ValueError:
             return None
 
-    hour_match = re.search(r"\b(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b", lowered)
-    if not hour_match:
+    if not has_time:
         return None
     if not any(token in lowered for token in ("today", "tomorrow", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", " at ")):
         return None
-    hour, minute, meridiem = int(hour_match.group(1)), int(hour_match.group(2) or 0), hour_match.group(3)
-    if meridiem == "pm" and hour < 12:
-        hour += 12
-    if meridiem == "am" and hour == 12:
-        hour = 0
-    if hour > 23 or minute > 59:
-        return None
-    target = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+    target = now.replace(hour=parsed_hour, minute=parsed_minute, second=0, microsecond=0)
     if "tomorrow" in lowered:
         target += timedelta(days=1)
     else:
@@ -95,6 +109,7 @@ def _parse_datetime(text: str, now: datetime) -> datetime | None:
                 target += timedelta(days=delta)
                 break
     return target
+
 
 
 def make_proposal(user_id: str, payload: CaptureTextRequest, extra_metadata: dict | None = None, user_profile: dict | None = None) -> ProposalOut:

@@ -9,14 +9,22 @@ from .schemas import PromptJobOut, PromptPlanOut
 from .store import store
 
 
+def _make_aware(dt: datetime | None) -> datetime | None:
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=UTC)
+    return dt
+
+
 def build_prompt_plan(user_id: str, timezone: str = "Africa/Lagos") -> PromptPlanOut:
     now = datetime.now(UTC)
     entries = store.list_entries(user_id)
     open_entries = [entry for entry in entries if entry.status == "open"]
     jobs: list[PromptJobOut] = []
 
-    for entry in sorted((item for item in open_entries if item.scheduled_at), key=lambda item: item.scheduled_at or item.created_at)[:6]:
-        scheduled_at = entry.scheduled_at or now
+    for entry in sorted((item for item in open_entries if item.scheduled_at), key=lambda item: _make_aware(item.scheduled_at) or _make_aware(item.created_at))[:10]:
+        scheduled_at = _make_aware(entry.scheduled_at) or now
         if scheduled_at < now:
             jobs.append(PromptJobOut(
                 kind="deadline",
@@ -27,26 +35,40 @@ def build_prompt_plan(user_id: str, timezone: str = "Africa/Lagos") -> PromptPla
                 priority="high",
                 related_entry=entry,
             ))
-        elif scheduled_at <= now + timedelta(days=1):
+        else:
+            # 10-minute pre-event alarm/reminder job
+            alarm_time = scheduled_at - timedelta(minutes=10)
             jobs.append(PromptJobOut(
-                kind="deadline",
-                title="Deadline within 24 hours",
-                message=f"{entry.title} is close. Pick the next action before the day fills up.",
+                kind="alarm_10m",
+                title=f"⏰ Starting in 10 mins: {entry.title}",
+                message=f"Reminder: {entry.title} is scheduled for {scheduled_at.strftime('%I:%M %p')}.",
                 route="/schedule" if entry.type in {"event", "task"} else "/projects",
-                scheduled_for=max(now, scheduled_at - timedelta(hours=3)),
+                scheduled_for=max(now, alarm_time),
                 priority="high",
                 related_entry=entry,
             ))
-        elif scheduled_at <= now + timedelta(days=7):
-            jobs.append(PromptJobOut(
-                kind="deadline",
-                title="Upcoming deadline",
-                message=f"{entry.title} is coming up this week.",
-                route="/schedule" if entry.type in {"event", "task"} else "/projects",
-                scheduled_for=max(now, scheduled_at - timedelta(days=1)),
-                priority="medium",
-                related_entry=entry,
-            ))
+
+            if scheduled_at <= now + timedelta(days=1):
+                jobs.append(PromptJobOut(
+                    kind="deadline",
+                    title="Deadline within 24 hours",
+                    message=f"{entry.title} is close. Pick the next action before the day fills up.",
+                    route="/schedule" if entry.type in {"event", "task"} else "/projects",
+                    scheduled_for=max(now, scheduled_at - timedelta(hours=3)),
+                    priority="high",
+                    related_entry=entry,
+                ))
+            elif scheduled_at <= now + timedelta(days=7):
+                jobs.append(PromptJobOut(
+                    kind="deadline",
+                    title="Upcoming deadline",
+                    message=f"{entry.title} is coming up this week.",
+                    route="/schedule" if entry.type in {"event", "task"} else "/projects",
+                    scheduled_for=max(now, scheduled_at - timedelta(days=1)),
+                    priority="medium",
+                    related_entry=entry,
+                ))
+
 
     for metric in store.habit_analytics(user_id):
         if metric.current_streak == 0 or metric.completion_rate < 0.5:

@@ -775,7 +775,7 @@ function GuidedCapturePanel({
 function ActionMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="action-menu-wrap" onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false); }} tabIndex={-1}>
+    <div className={`action-menu-wrap${open ? ' open' : ''}`} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false); }} tabIndex={-1}>
       <button type="button" className="icon-button" onClick={() => setOpen(o => !o)} aria-label="More options" aria-expanded={open}>
         <MoreHorizontal size={17} />
       </button>
@@ -788,6 +788,7 @@ function ActionMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => 
     </div>
   );
 }
+
 
 function InlineEdit({ initialTitle, initialNotes, onSave, onCancel }: { initialTitle: string; initialNotes: string; onSave: (title: string, notes: string) => void; onCancel: () => void }) {
   const [t, setT] = useState(initialTitle);
@@ -1194,12 +1195,24 @@ function Schedule() {
     if (!newTitle.trim() || !newDate) return;
     setSavingItem(true);
     try {
+      const selectedIso = new Date(newDate).toISOString();
       const formattedDate = new Date(newDate).toLocaleString(undefined, {
         month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
       });
       const text = `schedule event: ${newTitle.trim()} on ${formattedDate}${newNotes.trim() ? ` notes: ${newNotes.trim()}` : ''}`;
       const proposal = await api.capture(text);
-      await api.confirm(proposal.id);
+      const entry = await api.confirm(proposal.id);
+      await api.updateEntry(entry.id, { scheduled_at: selectedIso });
+
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'SCHEDULE_EVENT_ALARM',
+          title: entry.title,
+          scheduledAtMs: new Date(selectedIso).getTime(),
+          entryId: entry.id,
+        });
+      }
+
       setNewTitle(''); setNewDate(''); setNewNotes(''); setAddingItem(false);
       void load();
     } catch {
@@ -1208,6 +1221,7 @@ function Schedule() {
       setSavingItem(false);
     }
   };
+
 
   const startEdit = (e: Entry) => {
     setEditingId(e.id);

@@ -140,6 +140,45 @@ def gmail_message_count(access_token: str, max_results: int = 10) -> int:
     return len(response.json().get("messages", []))
 
 
+def fetch_gmail_messages(access_token: str, max_results: int = 15) -> list[dict]:
+    """Fetch recent Gmail message summaries with subjects, snippets, dates, and senders."""
+    response = httpx.get(
+        "https://gmail.googleapis.com/gmail/v1/users/me/messages",
+        headers={"Authorization": f"Bearer {access_token}"},
+        params={"maxResults": max_results, "q": "newer_than:30d"},
+        timeout=15,
+    )
+    response.raise_for_status()
+    messages_list = response.json().get("messages", [])
+    results = []
+    headers_to_get = {"Subject", "From", "Date"}
+    for msg in messages_list:
+        msg_id = msg.get("id")
+        if not msg_id:
+            continue
+        try:
+            detail_res = httpx.get(
+                f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{msg_id}",
+                headers={"Authorization": f"Bearer {access_token}"},
+                params={"format": "full"},
+                timeout=10,
+            )
+            detail_res.raise_for_status()
+            detail = detail_res.json()
+            payload = detail.get("payload", {})
+            headers = {h.get("name"): h.get("value") for h in payload.get("headers", []) if h.get("name") in headers_to_get}
+            results.append({
+                "id": msg_id,
+                "subject": headers.get("Subject") or "Email update",
+                "from": headers.get("From") or "",
+                "date": headers.get("Date") or "",
+                "snippet": detail.get("snippet") or "",
+            })
+        except Exception:
+            continue
+    return results
+
+
 def fetch_calendar_events(access_token: str, max_results: int = 25) -> list[dict]:
     """Fetch upcoming calendar events (next 30 days) and return structured event data."""
     response = httpx.get(
@@ -172,24 +211,35 @@ def push_calendar_events(access_token: str, events_to_push: list[dict]) -> list[
     """Push new events to Google Calendar. Returns list of (entry_id, calendar_event_id)."""
     created_ids = []
     for event in events_to_push:
-        dt_str = event.get("scheduled_at")
-        if not dt_str:
+        dt_val = event.get("scheduled_at")
+        if not dt_val:
             continue
         try:
-            end_dt = (datetime.fromisoformat(dt_str.replace("Z", "+00:00")) + timedelta(hours=1)).isoformat()
+            if isinstance(dt_val, datetime):
+                start_dt_obj = dt_val
+            elif isinstance(dt_val, str):
+                start_dt_obj = datetime.fromisoformat(dt_val.replace("Z", "+00:00"))
+            else:
+                continue
+            if start_dt_obj.tzinfo is None:
+                start_dt_obj = start_dt_obj.replace(tzinfo=UTC)
+            start_iso = start_dt_obj.isoformat()
+            end_iso = (start_dt_obj + timedelta(hours=1)).isoformat()
+
             response = httpx.post(
                 "https://www.googleapis.com/calendar/v3/calendars/primary/events",
                 headers={"Authorization": f"Bearer {access_token}"},
                 json={
                     "summary": event.get("title") or "Pinapeg Event",
                     "description": event.get("notes") or "",
-                    "start": {"dateTime": dt_str},
-                    "end": {"dateTime": end_dt}
+                    "start": {"dateTime": start_iso},
+                    "end": {"dateTime": end_iso}
                 },
                 timeout=15,
             )
             response.raise_for_status()
             created_ids.append((str(event["id"]), response.json().get("id")))
-        except httpx.HTTPError:
+        except Exception:
             continue
     return created_ids
+

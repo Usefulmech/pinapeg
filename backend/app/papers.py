@@ -53,12 +53,14 @@ def _title_search(query: str) -> dict:
         items = response.json().get("message", {}).get("items", [])
         if not items:
             return {}
+        q_lower = query.lower()
         for work in items:
             title = _clean((work.get("title") or [None])[0])
             if not title:
                 continue
             t_lower = title.lower()
             overlap = sum(w in t_lower for w in q_lower.split() if len(w) > 3)
+
             if overlap == 0:
                 continue
             doi = str(work.get("DOI") or "").strip()

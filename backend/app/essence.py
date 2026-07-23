@@ -31,6 +31,14 @@ def _module_counts(entries: list[EntryOut]) -> dict[str, int]:
     }
 
 
+def _make_aware(dt: datetime | None) -> datetime | None:
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=UTC)
+    return dt
+
+
 def create_daily_essence(user_id: str) -> DailyEssenceOut:
     entries = store.list_entries(user_id)
     now = datetime.now(UTC)
@@ -41,9 +49,9 @@ def create_daily_essence(user_id: str) -> DailyEssenceOut:
         [
             entry
             for entry in open_entries
-            if entry.scheduled_at and entry.scheduled_at >= now and entry.scheduled_at <= now + timedelta(days=14)
+            if entry.scheduled_at and _make_aware(entry.scheduled_at) >= now and _make_aware(entry.scheduled_at) <= now + timedelta(days=14)
         ],
-        key=lambda entry: entry.scheduled_at or entry.created_at,
+        key=lambda entry: _make_aware(entry.scheduled_at) or _make_aware(entry.created_at),
     )
     if upcoming_deadlines:
         entry = upcoming_deadlines[0]
