@@ -62,11 +62,21 @@ async def _background_worker_loop():
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    if settings().storage_mode.lower() == "postgres" and settings().database_url:
+        try:
+            from sqlalchemy import text
+            from .database import engine
+            with engine().connect() as conn:
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS push_subscriptions JSONB;"))
+                conn.commit()
+        except Exception:
+            pass
     worker_task = asyncio.create_task(_background_worker_loop())
     try:
         yield
     finally:
         worker_task.cancel()
+
 
 
 app = FastAPI(title="Pinapeg API", version="0.1.0", lifespan=lifespan)

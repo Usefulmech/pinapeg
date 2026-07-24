@@ -22,8 +22,10 @@ class UserModel(Base):
     display_name: Mapped[str | None] = mapped_column(String, nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String, nullable=True)
     timezone: Mapped[str] = mapped_column(String, default="Africa/Lagos")
+    push_subscriptions: Mapped[list[dict] | None] = mapped_column(JSONB, nullable=True, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
 
 
 class EntryModel(Base):

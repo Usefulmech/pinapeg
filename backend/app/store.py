@@ -793,13 +793,19 @@ class PostgresStore:
         with next(sessions()) as session:
             user = self._user(session, user_id, create=True)
             if user is not None:
-                subs = list(user.push_subscriptions or []) if hasattr(user, 'push_subscriptions') else []
-                subs.append(subscription)
-                session.commit()
+                subs = list(user.push_subscriptions or [])
+                if subscription not in subs:
+                    subs.append(subscription)
+                    user.push_subscriptions = subs
+                    session.commit()
 
     def get_push_subscriptions(self, user_id: str) -> list[dict]:
-        return []
-
+        with next(sessions()) as session:
+            user = self._user(session, user_id, create=False)
+            if user is not None and getattr(user, 'push_subscriptions', None):
+                return list(user.push_subscriptions)
+            return []
 
 
 store = PostgresStore() if settings().storage_mode.lower() == "postgres" else MemoryStore()
+
