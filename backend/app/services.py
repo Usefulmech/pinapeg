@@ -65,10 +65,18 @@ def _make_aware(dt: datetime | None) -> datetime | None:
     return dt
 
 
-def _parse_datetime(text: str, now: datetime) -> datetime | None:
+def _parse_datetime(text: str, now: datetime, timezone: str = "Africa/Lagos") -> datetime | None:
     """Deliberately conservative fallback parser. Production delegates to validated AI structured output."""
     lowered = text.lower()
-    hour_match = re.search(r"\b(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b", lowered)
+    try:
+        from zoneinfo import ZoneInfo
+        tz = ZoneInfo(timezone)
+    except Exception:
+        tz = UTC
+
+    local_now = now.astimezone(tz) if now.tzinfo else now.replace(tzinfo=UTC).astimezone(tz)
+
+    hour_match = re.search(r"\b(?:at\s+|by\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b", lowered)
     parsed_hour, parsed_minute = 23, 59
     has_time = False
     if hour_match:
@@ -86,30 +94,29 @@ def _parse_datetime(text: str, now: datetime) -> datetime | None:
         month = MONTHS[month_match.group(1).rstrip(".")]
         day = int(month_match.group(2))
         try:
-            target = now.replace(month=month, day=day, hour=parsed_hour, minute=parsed_minute, second=0, microsecond=0)
-            if target < now and not has_time:
-                target = target.replace(year=target.year + 1)
-            return target
+            target_local = local_now.replace(month=month, day=day, hour=parsed_hour, minute=parsed_minute, second=0, microsecond=0)
+            if target_local < local_now and not has_time:
+                target_local = target_local.replace(year=target_local.year + 1)
+            return target_local.astimezone(UTC)
         except ValueError:
             return None
 
     if not has_time:
         return None
-    if not any(token in lowered for token in ("today", "tomorrow", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", " at ")):
+    if not any(token in lowered for token in ("today", "tomorrow", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", " at ", " by ")):
         return None
 
-    target = now.replace(hour=parsed_hour, minute=parsed_minute, second=0, microsecond=0)
+    target_local = local_now.replace(hour=parsed_hour, minute=parsed_minute, second=0, microsecond=0)
     if "tomorrow" in lowered:
-        target += timedelta(days=1)
+        target_local += timedelta(days=1)
     else:
         days = {name: i for i, name in enumerate(("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"))}
         for name, weekday in days.items():
             if name in lowered:
-                delta = (weekday - now.weekday()) % 7 or 7
-                target += timedelta(days=delta)
+                delta = (weekday - local_now.weekday()) % 7 or 7
+                target_local += timedelta(days=delta)
                 break
-    return target
-
+    return target_local.astimezone(UTC)
 
 
 def make_proposal(user_id: str, payload: CaptureTextRequest, extra_metadata: dict | None = None, user_profile: dict | None = None) -> ProposalOut:
@@ -118,7 +125,8 @@ def make_proposal(user_id: str, payload: CaptureTextRequest, extra_metadata: dic
     lowered = text.lower()
     is_question = "?" in text or lowered.startswith(("what ", "when ", "where ", "do i ", "did i ", "show "))
     resolved = next((entry for entry in memories if entry.status == "open"), None) if any(token in lowered for token in ("sorted", "resolved", "handled", "done with", "finished")) else None
-    scheduled_at = _parse_datetime(text, payload.local_datetime)
+    scheduled_at = _parse_datetime(text, payload.local_datetime, payload.timezone)
+
     specialist_intent = None
     if re.search(r"https?://|doi\.org|arxiv\.org", lowered) or any(token in lowered for token in ("research paper", "track paper", "paper to read", "this paper", "paper on", "paper about", "new paper", "paper:")):
         specialist_intent = "TRACK_PAPER"
@@ -130,12 +138,15 @@ def make_proposal(user_id: str, payload: CaptureTextRequest, extra_metadata: dic
     if is_question:
         answer = f"You mentioned \"{memories[0].title}\" on {memories[0].created_at.strftime('%b %d')}." if memories else "I do not have a matching saved thought yet."
         intent, answer_value = "QUERY", answer
+    elif lowered.startswith(("i have been thinking about ", "thought:", "open thought:", "idea:")):
+        intent, answer_value = "OPEN_THOUGHT", None
     elif specialist_intent:
         intent, answer_value = specialist_intent, None
     elif resolved:
         intent, answer_value = "OPEN_THOUGHT", None
     elif scheduled_at:
         intent, answer_value = "CREATE", None
+
     elif scheduled_at and any(token in lowered for token in ("class", "lecture", "meeting", "appointment", "session", "seminar", "interview", "exam", "test", "presentation", "dinner", "lunch", "breakfast", "event", "have ")):
         intent, answer_value = "CREATE", None
     elif any(token in lowered for token in ("remind", "todo", "to-do", "need to", "should send", "call ")):

@@ -27,13 +27,28 @@ async function blobToBase64(blob: Blob): Promise<string> {
 }
 
 export const api = {
-  capture: (text: string, userProfile?: Record<string, string>) => request<Proposal>('/capture/text', { method: 'POST', body: JSON.stringify({ text, local_datetime: new Date().toISOString(), user_profile: userProfile }) }),
+  capture: (text: string, userProfile?: Record<string, string>) => request<Proposal>('/capture/text', {
+    method: 'POST',
+    body: JSON.stringify({
+      text,
+      local_datetime: new Date().toISOString(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      user_profile: userProfile
+    })
+  }),
   captureAudio: async (blob: Blob, userProfile?: Record<string, string>) => request<Proposal>('/capture/audio', {
     method: 'POST',
-    body: JSON.stringify({ audio_base64: await blobToBase64(blob), mime_type: blob.type || 'audio/webm', local_datetime: new Date().toISOString(), user_profile: userProfile })
+    body: JSON.stringify({
+      audio_base64: await blobToBase64(blob),
+      mime_type: blob.type || 'audio/webm',
+      local_datetime: new Date().toISOString(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      user_profile: userProfile
+    })
   }),
   confirm: (proposalId: string) => request<Entry>(`/capture/${proposalId}/confirm`, { method: 'POST' }),
   discard: (proposalId: string) => request<void>(`/capture/${proposalId}/discard`, { method: 'POST' }),
+
   entries: (params = '') => request<Entry[]>(`/entries${params}`),
   updateEntry: (id: string, payload: Partial<Pick<Entry, 'title' | 'notes' | 'scheduled_at' | 'status' | 'metadata'>>) => request<Entry>(`/entries/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   deleteEntry: (id: string) => request<void>(`/entries/${id}`, { method: 'DELETE' }),
@@ -52,6 +67,8 @@ export const api = {
   googleConnect: (provider: 'calendar' | 'gmail') => request<{ authorization_url: string }>(`/integrations/google/${provider}/connect`),
   googleSync: (provider: 'calendar' | 'gmail') => request<IntegrationSyncResult>(`/integrations/google/${provider}/sync`, { method: 'POST' }),
   integrations: () => request<Integrations>('/integrations'),
+  savePushSubscription: (sub: any) => request<{ status: string }>('/push/subscribe', { method: 'POST', body: JSON.stringify(sub) }),
   configStatus: () => request<ConfigStatus>('/config/status'),
   me: () => request<{ display_name: string; timezone: string; calendar_connected: boolean }>('/me')
 };
+

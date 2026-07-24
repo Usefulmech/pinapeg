@@ -71,6 +71,14 @@ class MemoryStore:
         self.habit_logs: set[tuple[str, UUID, date]] = set()
         self.oauth_connections: dict[tuple[str, str], OAuthConnectionOut] = {}
         self.oauth_refresh_tokens: dict[tuple[str, str], str] = {}
+        self.oauth_credentials: dict[tuple[str, str], tuple[str, str]] = {}
+        self.push_subscriptions: dict[str, list[dict]] = {}
+
+    def save_push_subscription(self, user_id: str, subscription: dict) -> None:
+        self.push_subscriptions.setdefault(user_id, []).append(subscription)
+
+    def get_push_subscriptions(self, user_id: str) -> list[dict]:
+        return self.push_subscriptions.get(user_id, [])
 
     def list_entries(self, user_id: str, *, entry_type: str | None = None, status: str | None = None, query: str | None = None) -> list[EntryOut]:
         items = self.entries.get(user_id, [])
@@ -780,6 +788,18 @@ class PostgresStore:
                     created += 1
             session.commit()
         return created, updated
+
+    def save_push_subscription(self, user_id: str, subscription: dict) -> None:
+        with next(sessions()) as session:
+            user = self._user(session, user_id, create=True)
+            if user is not None:
+                subs = list(user.push_subscriptions or []) if hasattr(user, 'push_subscriptions') else []
+                subs.append(subscription)
+                session.commit()
+
+    def get_push_subscriptions(self, user_id: str) -> list[dict]:
+        return []
+
 
 
 store = PostgresStore() if settings().storage_mode.lower() == "postgres" else MemoryStore()

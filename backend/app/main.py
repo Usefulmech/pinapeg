@@ -272,6 +272,11 @@ def daily_essence(user_id: str = Depends(current_user)): return create_daily_ess
 @app.get('/v1/prompt-plan', response_model=PromptPlanOut)
 def prompt_plan(user_id: str = Depends(current_user), timezone: str = "Africa/Lagos"): return build_prompt_plan(user_id, timezone)
 
+@app.post('/v1/push/subscribe')
+def push_subscribe(payload: dict, user_id: str = Depends(current_user)):
+    store.save_push_subscription(user_id, payload)
+    return {"status": "subscribed"}
+
 @app.post('/v1/worker/run-due')
 def trigger_worker(user_id: str = Depends(current_user), timezone: str = "Africa/Lagos"):
     outcomes = run_due_prompt_jobs(user_id, timezone)
@@ -282,4 +287,5 @@ def habit_analytics(user_id: str = Depends(current_user)): return HabitAnalytics
 
 @app.get('/v1/analytics/cv-timeline', response_model=list[EntryOut])
 def cv_timeline(user_id: str = Depends(current_user)): return store.cv_timeline(user_id)
+
 

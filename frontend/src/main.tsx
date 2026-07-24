@@ -77,30 +77,78 @@ const metaList = (entry: Entry, key: string) =>
     ? (entry.metadata[key] as unknown[]).filter(Boolean).map(String)
     : [];
 
-export function playNotificationSound() {
-  try {
+let sharedAudioCtx: AudioContext | null = null;
+
+function getAudioContext() {
+  if (!sharedAudioCtx) {
     const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
+    if (AudioCtx) {
+      sharedAudioCtx = new AudioCtx();
+    }
+  }
+  if (sharedAudioCtx && sharedAudioCtx.state === "suspended") {
+    sharedAudioCtx.resume().catch(() => {});
+  }
+  return sharedAudioCtx;
+}
+
+if (typeof window !== "undefined") {
+  const unlockAudio = () => {
+    getAudioContext();
+    window.removeEventListener("click", unlockAudio);
+    window.removeEventListener("touchstart", unlockAudio);
+  };
+  window.addEventListener("click", unlockAudio);
+  window.addEventListener("touchstart", unlockAudio);
+}
+
+function playNotificationSound() {
+
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
     osc.type = "sine";
-    osc.frequency.setValueAtTime(659.25, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(987.77, ctx.currentTime + 0.15);
+    osc.frequency.setValueAtTime(659.25, now);
+    osc.frequency.exponentialRampToValueAtTime(987.77, now + 0.15);
 
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
 
     osc.connect(gain);
     gain.connect(ctx.destination);
 
-    osc.start();
-    osc.stop(ctx.currentTime + 0.6);
+    osc.start(now);
+    osc.stop(now + 0.6);
   } catch {
     // Audio Context restricted before user gesture or unsupported
   }
 }
+
+export function syncScheduledAlarmsWithSW(entries: Entry[]) {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.ready.then((reg) => {
+      entries.forEach((e) => {
+        if (e.scheduled_at && e.status === "open") {
+          const scheduledAtMs = new Date(e.scheduled_at).getTime();
+          if (scheduledAtMs > Date.now()) {
+            reg.active?.postMessage({
+              type: "SCHEDULE_EVENT_ALARM",
+              title: e.title,
+              scheduledAtMs,
+              entryId: e.id,
+            });
+          }
+        }
+      });
+    });
+  }
+}
+
+
 
 function Layout({ children }: { children: React.ReactNode }) {
   const [menu, setMenu] = useState(false);
@@ -206,6 +254,27 @@ function Layout({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, [isOnboarding, location.pathname, nav]);
 
+  // Auto-update Service Worker & reload app when new version is deployed
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      let refreshing = false;
+      const handleControllerChange = () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      };
+      navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
+
+      navigator.serviceWorker.ready.then((reg) => {
+        reg.update().catch(() => {});
+        setInterval(() => reg.update().catch(() => {}), 15 * 60 * 1000);
+      });
+
+      return () => navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
+    }
+  }, []);
+
   // Listen for service worker notification audio triggers
   useEffect(() => {
     if ("serviceWorker" in navigator) {
@@ -219,29 +288,36 @@ function Layout({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+
   // Schedule daily essence & checkin notifications if permission granted
   useEffect(() => {
-    if ("Notification" in window && Notification.permission === "granted" && "serviceWorker" in navigator) {
-      const savedEssence = localStorage.getItem("pinapeg.essenceTime") || "08:00";
-      const savedCheckin = localStorage.getItem("pinapeg.checkinTime") || "20:00";
+    if ("Notification" in window && "serviceWorker" in navigator) {
+      if (Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
+      }
+      if (Notification.permission === "granted") {
+        const savedEssence = localStorage.getItem("pinapeg.essenceTime") || "08:00";
+        const savedCheckin = localStorage.getItem("pinapeg.checkinTime") || "20:00";
 
-      navigator.serviceWorker.ready.then((reg) => {
-        const [h1, m1] = savedEssence.split(":").map(Number);
-        reg.active?.postMessage({
-          type: "SCHEDULE_DAILY_NOTIFICATION",
-          hour: h1,
-          minute: m1,
-        });
+        navigator.serviceWorker.ready.then((reg) => {
+          const [h1, m1] = savedEssence.split(":").map(Number);
+          reg.active?.postMessage({
+            type: "SCHEDULE_DAILY_NOTIFICATION",
+            hour: h1,
+            minute: m1,
+          });
 
-        const [h2, m2] = savedCheckin.split(":").map(Number);
-        reg.active?.postMessage({
-          type: "SCHEDULE_CHECKIN_NOTIFICATION",
-          hour: h2,
-          minute: m2,
+          const [h2, m2] = savedCheckin.split(":").map(Number);
+          reg.active?.postMessage({
+            type: "SCHEDULE_CHECKIN_NOTIFICATION",
+            hour: h2,
+            minute: m2,
+          });
         });
-      });
+      }
     }
   }, []);
+
 
   if (checkingAuth) {
     return (
@@ -813,6 +889,7 @@ function Capture() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [recording, setRecording] = useState(false);
+  const [showMicModal, setShowMicModal] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState("");
   const recorder = useRef<MediaRecorder | null>(null);
   const profile = getStoredProfile();
@@ -838,25 +915,11 @@ function Capture() {
     }
   };
 
-  const submit = async () => {
-    if (!input.trim()) return;
-    setLoading(true);
-    setError("");
-    try {
-      setProposal(await api.capture(input, { focus: profile.focus, workMode: profile.workMode, role: profile.role }));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to understand that.");
-    } finally {
-      setLoading(false);
+  const startRecordingDirectly = async (prefixOverride?: string) => {
+    setShowMicModal(false);
+    if (prefixOverride !== undefined) {
+      setInput(prev => prev ? `${prev.trim()} ${prefixOverride}` : prefixOverride);
     }
-  };
-
-  const toggleRecord = async () => {
-    if (recording) {
-      recorder.current?.stop();
-      return;
-    }
-
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const chunks: Blob[] = [];
@@ -873,8 +936,13 @@ function Capture() {
         setVoiceStatus("Preparing voice note...");
         try {
           setVoiceStatus("Preparing transcript...");
-          setProposal(await api.captureAudio(blob, { focus: profile.focus, workMode: profile.workMode, role: profile.role }));
-          setInput("");
+          const res = await api.captureAudio(blob, { focus: profile.focus, workMode: profile.workMode, role: profile.role });
+          setProposal(res);
+          setInput((prev) => {
+            const added = res.title || "";
+            if (!prev.trim()) return added;
+            return `${prev.trim()} ${added}`;
+          });
         } catch (e) {
           setError(
             e instanceof Error
@@ -895,6 +963,28 @@ function Capture() {
       );
     }
   };
+
+  const toggleRecord = () => {
+    if (recording) {
+      recorder.current?.stop();
+    } else {
+      setShowMicModal(true);
+    }
+  };
+
+  const submit = async () => {
+    if (!input.trim()) return;
+    setLoading(true);
+    setError("");
+    try {
+      setProposal(await api.capture(input, { focus: profile.focus, workMode: profile.workMode, role: profile.role }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to understand that.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <>
@@ -922,9 +1012,50 @@ function Capture() {
             </span>
           )}
         </div>
+
+        {showMicModal && (
+          <div className="mic-modal-overlay" onClick={() => setShowMicModal(false)}>
+            <div className="mic-modal-card" onClick={e => e.stopPropagation()}>
+              <div className="mic-modal-header">
+                <Sparkles size={20} className="mic-modal-sparkle" />
+                <h3>What are you capturing?</h3>
+                <p>Select a category to lock voice routing, or tap Speak Freely.</p>
+              </div>
+              <div className="mic-modal-grid">
+                <button type="button" className="mic-modal-chip" onClick={() => void startRecordingDirectly("I have been thinking about ")}>
+                  <Lightbulb size={18} />
+                  <span>Thought</span>
+                </button>
+                <button type="button" className="mic-modal-chip" onClick={() => void startRecordingDirectly("schedule event: ")}>
+                  <CalendarDays size={18} />
+                  <span>Event</span>
+                </button>
+                <button type="button" className="mic-modal-chip" onClick={() => void startRecordingDirectly("reminder: ")}>
+                  <Check size={18} />
+                  <span>Task</span>
+                </button>
+                <button type="button" className="mic-modal-chip" onClick={() => void startRecordingDirectly("daily habit: ")}>
+                  <Flame size={18} />
+                  <span>Habit</span>
+                </button>
+              </div>
+
+              <div className="mic-modal-actions">
+                <button type="button" className="secondary" onClick={() => void startRecordingDirectly()}>
+                  🎙️ Speak Freely
+                </button>
+                <button type="button" className="text-link" onClick={() => setShowMicModal(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="capture-rule">
           <span>or write it down</span>
         </div>
+
         <div className="quick-capture">
           {presets.map(({ key, label, icon: Icon, prefix }) => {
             const isSelected = activeCategory === key;
@@ -1167,7 +1298,8 @@ function Schedule() {
   const [editTitle, setEditTitle] = useState('');
   const [editNotes, setEditNotes] = useState('');
 
-  const load = () => api.schedule().then(setEntries).catch(() => setEntries([]));
+  const load = () => api.schedule().then(res => { setEntries(res); syncScheduledAlarmsWithSW(res); }).catch(() => setEntries([]));
+
 
   useEffect(() => {
     void load();
@@ -1435,6 +1567,10 @@ function Schedule() {
 function Thoughts() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [filter, setFilter] = useState<"open" | "resolved">("open");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+
   const load = () =>
     api
       .entries(`?type=thought&status=${filter}`)
@@ -1443,10 +1579,25 @@ function Thoughts() {
   useEffect(() => {
     void load();
   }, [filter]);
+
   const resolve = async (entry: Entry) => {
     await api.updateStatus(entry.id, entry.status === 'open' ? 'resolve' : 'reopen');
     void load();
   };
+
+  const startEdit = (e: Entry) => {
+    setEditingId(e.id);
+    setEditTitle(e.title);
+    setEditNotes(e.notes || "");
+  };
+
+  const saveEdit = async () => {
+    if (!editingId) return;
+    await api.updateEntry(editingId, { title: editTitle.trim(), notes: editNotes.trim() || undefined });
+    setEditingId(null);
+    void load();
+  };
+
   const [searchQ, setSearchQ] = useState('');
   const visible = entries.filter(e =>
     !searchQ || e.title.toLowerCase().includes(searchQ.toLowerCase()) || (e.notes || '').toLowerCase().includes(searchQ.toLowerCase())
@@ -1474,14 +1625,25 @@ function Thoughts() {
               <div className="thought-card-top">
                 <time className="thought-age">{relative(e.created_at)}</time>
                 <ActionMenu
-                  onEdit={() => { /* future inline edit */ }}
+                  onEdit={() => startEdit(e)}
                   onDelete={() => { void api.deleteEntry(e.id).then(() => void load()); }}
                 />
               </div>
-              <div className="thought-card-body">
-                <h3>{e.title}</h3>
-                {e.notes && <p>{e.notes}</p>}
-              </div>
+              {editingId === e.id ? (
+                <div className="history-edit-form" style={{ width: '100%', margin: '12px 0' }}>
+                  <input value={editTitle} onChange={ev => setEditTitle(ev.target.value)} className="history-edit-input" />
+                  <textarea value={editNotes} onChange={ev => setEditNotes(ev.target.value)} className="history-edit-textarea" rows={2} placeholder="Notes (optional)" />
+                  <div className="history-edit-actions" style={{ marginTop: 8 }}>
+                    <button className="secondary" onClick={() => void saveEdit()}>Save</button>
+                    <button className="text-link" onClick={() => setEditingId(null)}>Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="thought-card-body">
+                  <h3>{e.title}</h3>
+                  {e.notes && <p>{e.notes}</p>}
+                </div>
+              )}
               <button className="status-button thought-card-action" onClick={() => void resolve(e)}>
                 {e.status === 'open' ? <><Check size={14} /> Resolve</> : <><RotateCcw size={14} /> Reopen</>}
               </button>
@@ -1494,6 +1656,7 @@ function Thoughts() {
     </section>
   );
 }
+
 
 function Habits() {
   const [entries, setEntries] = useState<Entry[]>([]);
